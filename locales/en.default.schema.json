@@ -48,7 +48,15 @@
     "page_width": "Page width",
     "show_payment_icons": "Show payment icons",
     "text_style": "Text style",
-    "text": "Text"
+    "text": "Text",
+    "footer_address": "Address",
+    "footer_phone": "Phone number",
+    "footer_hours": "Business hours",
+    "footer_newsletter_title": "Newsletter title",
+    "footer_newsletter_subtitle": "Newsletter subtitle",
+    "footer_social_link": "Social link",
+    "footer_social_icon": "Icon",
+    "footer_social_label": "Label"
   },
   "options": {
     "alignment": {

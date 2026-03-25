@@ -1,39 +1,431 @@
-<footer>
-  <div class="footer__copyright">
-    &copy;
-    {{ 'now' | date: '%Y' }}
-    {{ shop.name | link_to: routes.root_url }}, {{ powered_by_link }}
-  </div>
+<footer class="footer full-width">
+  <div class="footer__inner">
+    <div class="footer__content">
+      <div class="footer__logo">
+        <img
+          src="{{ 'logo-white.svg' | asset_url }}"
+          alt="{{ shop.name }}"
+          width="280"
+          height="36"
+          loading="eager"
+        >
+      </div>
 
-  <div class="footer__links">
-    {% for link in section.settings.menu.links %}
-      {{ link.title | link_to: link.url }}
-    {% endfor %}
-  </div>
+      {% if section.settings.address != blank or section.settings.phone != blank or section.settings.hours != blank %}
+        <div class="footer__address">
+          {% if section.settings.address != blank %}
+            <p class="footer__address-text">{{ section.settings.address }}</p>
+          {% endif %}
+          {% if section.settings.phone != blank %}
+            <a
+              href="tel:{{ section.settings.phone | remove: ' ' | remove: '(' | remove: ')' | remove: '-' }}"
+              class="footer__phone"
+            >
+              {{- section.settings.phone -}}
+            </a>
+          {% endif %}
+          {% if section.settings.hours != blank %}
+            <p class="footer__hours">{{ section.settings.hours }}</p>
+          {% endif %}
+        </div>
+      {% endif %}
 
-  <div class="footer__payment">
-    {% if section.settings.show_payment_icons %}
-      {% for type in shop.enabled_payment_types %}
-        {{ type | payment_type_svg_tag }}
-      {% endfor %}
+      {% assign social_blocks = section.blocks | where: 'type', 'social_link' %}
+      {% if social_blocks.size > 0 %}
+        <div class="footer__social">
+          {% for block in social_blocks %}
+            <a
+              href="{{ block.settings.url }}"
+              target="_blank"
+              rel="noopener"
+              aria-label="{{ block.settings.label }}"
+              {{ block.shopify_attributes }}
+            >
+              {% if block.settings.icon != blank %}
+                {{
+                  block.settings.icon
+                  | image_url: width: 40
+                  | image_tag: class: 'footer__social-icon', loading: 'lazy'
+                }}
+              {% endif %}
+            </a>
+          {% endfor %}
+        </div>
+      {% endif %}
+    </div>
+
+    {% if linklists.footer.links.size > 0 %}
+      <div class="footer__links">
+        {% for link in linklists.footer.links %}
+          <div class="footer__link-column">
+            <h4 class="footer__link-title">{{ link.title }}</h4>
+            {% if link.links.size > 0 %}
+              <ul class="footer__link-list">
+                {% for child_link in link.links %}
+                  <li>
+                    <a href="{{ child_link.url }}">{{ child_link.title }}</a>
+                  </li>
+                {% endfor %}
+              </ul>
+            {% endif %}
+          </div>
+        {% endfor %}
+      </div>
     {% endif %}
+
+    <div class="footer__newsletter-section">
+      <div class="footer__newsletter">
+        <div class="footer__newsletter-text">
+          <h3 class="footer__newsletter-title">{{ section.settings.newsletter_title }}</h3>
+          <p class="footer__newsletter-subtitle">{{ section.settings.newsletter_subtitle }}</p>
+        </div>
+        <div class="footer__newsletter-form">
+          {% form 'customer', id: 'footer-newsletter' %}
+            <input type="hidden" name="contact[tags]" value="newsletter">
+            <input
+              type="email"
+              name="contact[email]"
+              placeholder="{{ 'footer.email_placeholder' | t }}"
+              required
+              autocomplete="email"
+              class="footer__input"
+            >
+            <button type="submit" class="footer__button">
+              {{ 'footer.subscribe' | t }}
+            </button>
+          {% endform %}
+        </div>
+      </div>
+    </div>
+
+    <div class="footer__copyright">
+      <p>{{ shop.name }} &copy; {{ 'now' | date: '%Y' }}</p>
+    </div>
   </div>
 </footer>
 
 {% stylesheet %}
-  footer {
-    display: flex;
-    justify-content: space-between;
-    margin-top: 2rem;
+  @font-face {
+    font-family: 'Orpheus Pro';
+    src: local('Orpheus Pro');
   }
-  footer a {
+
+  /* Sticky bottom: push footer to end of page */
+  .shopify-section:has(.footer) {
+    margin-top: auto;
+  }
+
+  .footer {
+    width: 100%;
+    background-color: #706a38;
+    color: #ffffff;
+  }
+
+  .footer__inner {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    grid-template-rows: auto auto auto;
+    gap: 40px 40px;
+    width: 100%;
+    max-width: 1440px;
+    margin: 0 auto;
+    padding: 60px 30px 0;
+    box-sizing: border-box;
+  }
+
+  .footer__content {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  .footer__links {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  .footer__newsletter-section {
+    grid-column: 1 / -1;
+    grid-row: 2;
+  }
+
+  .footer__copyright {
+    grid-column: 1 / -1;
+    grid-row: 3;
+  }
+
+  /* Left column: logo + address + socials */
+  .footer__content {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    align-items: flex-start;
+  }
+
+  .footer__logo-img {
+    width: 280px;
+    height: auto;
+  }
+
+  .footer__logo-text {
+    font-family: 'Orpheus Pro', serif;
+    font-size: 24px;
+    font-weight: 400;
+    color: #ffffff;
+  }
+
+  .footer__address {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+    max-width: 400px;
+  }
+
+  .footer__address-text,
+  .footer__phone {
+    font-family: var(--font-primary--family), sans-serif;
+    font-weight: 400;
+    color: #ffffff;
+    font-size: 16px;
+    line-height: 1.5;
+    text-decoration: underline;
+  }
+
+  .footer__phone {
+    display: inline-block;
+  }
+
+  .footer__hours {
+    font-family: var(--font-primary--family), sans-serif;
+    font-weight: 400;
+    color: #ffffff;
+    font-size: 16px;
+    line-height: 1.5;
+  }
+
+  /* Social icons */
+  .footer__social {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+  }
+
+  .footer__social a {
+    color: #ffffff;
     text-decoration: none;
-    color: var(--color-foreground);
-  }
-  footer .footer__links,
-  footer .footer__payment {
     display: flex;
-    gap: 1rem;
+    align-items: center;
+    transition: opacity 0.2s;
+  }
+
+  .footer__social a:hover {
+    opacity: 0.7;
+  }
+
+  .footer__social-icon {
+    width: 20px;
+    height: 20px;
+    object-fit: contain;
+  }
+
+  /* Right: link columns */
+  .footer__links {
+    display: flex;
+    justify-content: flex-end;
+    gap: 120px;
+    align-items: flex-start;
+  }
+
+  .footer__link-column {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .footer__link-title {
+    font-family: var(--font-primary--family), sans-serif;
+    font-weight: 500;
+    color: #ffffff;
+    font-size: 14px;
+    letter-spacing: 0.4px;
+    line-height: 1.5;
+    text-transform: uppercase;
+    margin: 0;
+  }
+
+  .footer__link-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .footer__link-list li a {
+    font-family: var(--font-primary--family), sans-serif;
+    font-weight: 400;
+    color: rgba(254, 253, 252, 0.8);
+    font-size: 14px;
+    letter-spacing: 0.4px;
+    line-height: 28px;
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+
+  .footer__link-list li a:hover {
+    color: #ffffff;
+  }
+
+  /* Newsletter section */
+  .footer__newsletter-section {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .footer__newsletter {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    padding-top: 32px;
+    border-top: 1px solid rgba(255, 255, 255, 0.2);
+  }
+
+  .footer__newsletter-text {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    max-width: 500px;
+  }
+
+  .footer__newsletter-title {
+    font-family: 'Orpheus Pro', serif;
+    font-weight: 400;
+    color: #fefdfc;
+    font-size: 20px;
+    line-height: 22px;
+    margin: 0;
+  }
+
+  .footer__newsletter-subtitle {
+    font-family: var(--font-primary--family), sans-serif;
+    font-weight: 400;
+    color: rgba(254, 253, 252, 0.8);
+    font-size: 14px;
+    line-height: 19.6px;
+    margin: 0;
+  }
+
+  .footer__newsletter-form,
+  .footer__newsletter-form form {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .footer__input {
+    width: 275px;
+    height: 48px;
+    padding: 0 12px;
+    background-color: #ffffff;
+    border: 1px solid #e5e5e5;
+    font-family: var(--font-primary--family), sans-serif;
+    font-weight: 400;
+    color: #333333;
+    font-size: 14px;
+    line-height: 1.5;
+    box-sizing: border-box;
+    outline: none;
+  }
+
+  .footer__input::placeholder {
+    color: #999999;
+  }
+
+  .footer__button {
+    all: unset;
+    box-sizing: border-box;
+    display: inline-flex;
+    height: 48px;
+    align-items: center;
+    justify-content: center;
+    padding: 0 32px;
+    background-color: #f5f5f0;
+    font-family: var(--font-primary--family), sans-serif;
+    font-weight: 500;
+    color: #1a1a1a;
+    font-size: 13px;
+    letter-spacing: 1px;
+    line-height: 1;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: opacity 0.2s;
+  }
+
+  .footer__button:hover {
+    opacity: 0.85;
+  }
+
+  /* Copyright */
+  .footer__copyright {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 12px 0 28px;
+    border-top: 1px solid rgba(255, 255, 255, 0.2);
+    width: 100%;
+  }
+
+  .footer__copyright p {
+    font-family: var(--font-primary--family), sans-serif;
+    font-weight: 400;
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 14px;
+    text-align: center;
+    line-height: 1.5;
+    margin: 0;
+  }
+
+  /* Mobile */
+  @media (max-width: 1023px) {
+    .footer__inner {
+      display: flex;
+      flex-direction: column;
+      padding: 50px 10px 0 10px;
+      gap: 40px;
+    }
+
+    .footer__content {
+      order: 1;
+    }
+    .footer__newsletter-section {
+      order: 2;
+    }
+    .footer__links {
+      order: 3;
+      flex-direction: column;
+      gap: 32px;
+    }
+    .footer__copyright {
+      order: 4;
+    }
+    .footer__newsletter {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 24px;
+    }
+    .footer__newsletter-form,
+    .footer__newsletter-form form {
+      width: 100%;
+    }
+    .footer__input {
+      flex: 1 1 0%;
+      width: 0;
+      max-width: 240px;
+    }
+    .footer__button {
+      flex: 0 0 auto;
+      max-width: 120px;
+    }
   }
 {% endstylesheet %}
 
@@ -42,15 +434,60 @@
   "name": "t:general.footer",
   "settings": [
     {
-      "type": "link_list",
-      "id": "menu",
-      "label": "t:labels.menu"
+      "type": "textarea",
+      "id": "address",
+      "label": "t:labels.footer_address"
     },
     {
-      "type": "checkbox",
-      "id": "show_payment_icons",
-      "label": "t:labels.show_payment_icons",
-      "default": true
+      "type": "text",
+      "id": "phone",
+      "label": "t:labels.footer_phone"
+    },
+    {
+      "type": "textarea",
+      "id": "hours",
+      "label": "t:labels.footer_hours"
+    },
+    {
+      "type": "text",
+      "id": "newsletter_title",
+      "label": "t:labels.footer_newsletter_title",
+      "default": "Subscribe to our newsletter"
+    },
+    {
+      "type": "text",
+      "id": "newsletter_subtitle",
+      "label": "t:labels.footer_newsletter_subtitle",
+      "default": "The latest news, articles, and resources, sent to your inbox weekly."
+    }
+  ],
+  "blocks": [
+    {
+      "type": "social_link",
+      "name": "t:labels.footer_social_link",
+      "settings": [
+        {
+          "type": "image_picker",
+          "id": "icon",
+          "label": "t:labels.footer_social_icon"
+        },
+        {
+          "type": "text",
+          "id": "label",
+          "label": "t:labels.footer_social_label",
+          "default": "Social"
+        },
+        {
+          "type": "url",
+          "id": "url",
+          "label": "URL"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Footer"
     }
   ]
 }
