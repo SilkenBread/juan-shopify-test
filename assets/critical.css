@@ -27,13 +27,6 @@ svg {
   height: auto;
 }
 
-input,
-textarea,
-select {
-  font: inherit;
-  border-radius: var(--style-border-radius-inputs);
-}
-
 select {
   background-color: var(--color-background);
   color: currentcolor;

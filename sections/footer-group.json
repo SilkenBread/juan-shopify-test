@@ -13,9 +13,43 @@
   "sections": {
     "footer": {
       "type": "footer",
+      "blocks": {
+        "social_facebook": {
+          "type": "social_link",
+          "settings": {
+            "icon": "shopify://shop_images/Facebook_Icon_f7c89ed9-124d-4c54-acc4-e374127b5521.png",
+            "label": "Facebook",
+            "url": "https://www.facebook.com/juan.rubio729/"
+          }
+        },
+        "social_instagram": {
+          "type": "social_link",
+          "settings": {
+            "icon": "shopify://shop_images/Instagram_Icon_2bf30771-ac79-45a7-851a-42ca6b3a932e.png",
+            "label": "Instagram",
+            "url": "https://www.instagram.com/silkenbread/"
+          }
+        },
+        "social_pinterest": {
+          "type": "social_link",
+          "settings": {
+            "icon": "shopify://shop_images/Tiktok_Icon_4a29aa49-95a5-44fa-9261-c17bd58607b4.png",
+            "label": "Tiktok",
+            "url": "https://www.tiktok.com/"
+          }
+        }
+      },
+      "block_order": [
+        "social_facebook",
+        "social_instagram",
+        "social_pinterest"
+      ],
       "settings": {
-        "menu": "",
-        "show_payment_icons": true
+        "address": "1750 Kalakaua Ave. Suite 3702 Century Center Honolulu, HI 96826",
+        "phone": "(808) 946-4332",
+        "hours": "Open Monday-Friday 10:00am to 5:00pm,\nSat by appointment only.",
+        "newsletter_title": "Subscribe to our newsletter",
+        "newsletter_subtitle": "The latest news, articles, and resources, sent to your inbox weekly."
       }
     }
   },
