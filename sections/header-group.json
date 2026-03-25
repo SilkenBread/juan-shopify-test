@@ -11,12 +11,20 @@
   "type": "header",
   "name": "t:general.header",
   "sections": {
+    "anouncement-bar": {
+      "type": "anouncement-bar",
+      "settings": {}
+    },
     "header": {
       "type": "header",
-      "settings": {}
+      "settings": {
+        "menu": "main-menu",
+        "customer_account_menu": "customer-account-main-menu"
+      }
     }
   },
   "order": [
+    "anouncement-bar",
     "header"
-  ],
+  ]
 }

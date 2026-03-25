@@ -1,0 +1,125 @@
+<div
+  class="announcement-bar__inner full-width"
+  style="--announcement-bg: {{ section.settings.background_color }}; --announcement-color: {{ section.settings.text_color }};"
+>
+  {% if section.settings.text != blank or section.settings.link_text != blank %}
+    <div class="announcement-bar__content">
+      {% if section.settings.text != blank %}
+        <p class="announcement-bar__text">{{ section.settings.text }}</p>
+      {% endif %}
+      {% if section.settings.link_text != blank %}
+        <a href="{{ section.settings.link_url }}" class="announcement-bar__link">
+          {{- section.settings.link_text -}}
+        </a>
+      {% endif %}
+    </div>
+  {% endif %}
+</div>
+
+{% stylesheet %}
+  .announcement-bar__inner {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 40px;
+    padding: 0 80px;
+    gap: 10px;
+    background-color: var(--announcement-bg);
+  }
+
+  .announcement-bar__content {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .announcement-bar__text {
+    font-family: var(--font-primary--family);
+    font-weight: var(--font-primary--weight);
+    font-size: 14px;
+    line-height: 1.4;
+    color: var(--announcement-color);
+    white-space: nowrap;
+    margin: 0;
+  }
+
+  .announcement-bar__link {
+    font-family: var(--font-primary--family);
+    font-weight: bold;
+    font-size: 12px;
+    line-height: 1.4;
+    letter-spacing: 0.05em;
+    color: var(--announcement-color);
+    text-decoration: underline;
+    white-space: nowrap;
+  }
+
+  @media (max-width: 767px) {
+    .announcement-bar__inner {
+      padding: 0 16px;
+      height: auto;
+      min-height: 40px;
+      padding-top: 8px;
+      padding-bottom: 8px;
+    }
+
+    .announcement-bar__content {
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .announcement-bar__text {
+      white-space: normal;
+      text-align: center;
+    }
+
+    .announcement-bar__link {
+      display: none;
+    }
+  }
+{% endstylesheet %}
+
+{% schema %}
+  {
+    "name": "Anouncement Bar",
+    "tag": "aside",
+    "class": "anouncement-bar",
+    "settings": [
+      {
+        "type": "text",
+        "id": "text",
+        "label": "Text",
+        "default": "Get 20% off a matching band with your engagement ring."
+      },
+      {
+        "type": "text",
+        "id": "link_text",
+        "label": "Link text",
+        "default": "SHOP ENGAGEMENT"
+      },
+      {
+        "type": "url",
+        "id": "link_url",
+        "label": "Link URL"
+      },
+      {
+        "type": "color",
+        "id": "background_color",
+        "label": "Background color",
+        "default": "#66523E"
+      },
+      {
+        "type": "color",
+        "id": "text_color",
+        "label": "Text color",
+        "default": "#ffffffcc"
+      }
+    ],
+    "presets": [
+      {
+        "name": "Anouncement Bar",
+        "settings": {}
+      }
+    ]
+  }
+{% endschema %}
