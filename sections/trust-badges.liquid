@@ -1,0 +1,112 @@
+<div class="trust-badges__grid">
+  {%- for block in section.blocks -%}
+    <div class="trust-badges__item" {{ block.shopify_attributes }}>
+      {%- if block.settings.icon != blank -%}
+        <div class="trust-badges__icon">
+          {{ block.settings.icon }}
+        </div>
+      {%- endif -%}
+      {%- if block.settings.heading != blank -%}
+        <h3 class="trust-badges__heading">{{ block.settings.heading }}</h3>
+      {%- endif -%}
+      {%- if block.settings.description != blank -%}
+        <p class="trust-badges__description">{{ block.settings.description }}</p>
+      {%- endif -%}
+    </div>
+  {%- endfor -%}
+</div>
+
+{%- stylesheet -%}
+  .trust-badges__grid {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 32px 60px;
+    padding: 80px 30px;
+    max-width: 1440px;
+    margin: 0 auto;
+  }
+
+  .trust-badges__item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+    width: 340px;
+    min-width: 260px;
+  }
+
+  .trust-badges__icon svg {
+    width: 40px;
+    height: 40px;
+    color: var(--color-foreground);
+  }
+
+  .trust-badges__heading {
+    font-family: var(--font-primary--family);
+    font-size: 20px;
+    font-weight: 400;
+    color: var(--color-foreground);
+    text-align: center;
+    margin: 0;
+    letter-spacing: 0.5px;
+  }
+
+  .trust-badges__description {
+    font-family: var(--font-primary--family);
+    font-size: 14px;
+    font-weight: 400;
+    color: var(--color-foreground);
+    opacity: 0.8;
+    text-align: center;
+    line-height: 1.6;
+    margin: -14px 0 0;
+  }
+
+  @media (max-width: 480px) {
+    .trust-badges__grid {
+      gap: 30px 20px;
+      padding: 50px 20px;
+    }
+
+    .trust-badges__item {
+      flex: 1 1 100%;
+      min-width: 0;
+    }
+  }
+{%- endstylesheet -%}
+
+{% schema %}
+  {
+    "name": "Trust Badges",
+    "tag": "section",
+    "class": "trust-badges",
+    "settings": [],
+    "blocks": [
+      {
+        "type": "badge",
+        "name": "Badge",
+        "settings": [
+          {
+            "type": "html",
+            "id": "icon",
+            "label": "Icon (SVG code)",
+            "default": "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40' fill='none' stroke='currentColor' stroke-width='1.2'><path d='M20 4 L36 14 L36 26 L20 36 L4 26 L4 14 Z'/></svg>"
+          },
+          {
+            "type": "text",
+            "id": "heading",
+            "label": "Heading",
+            "default": "Trust Badge"
+          },
+          {
+            "type": "textarea",
+            "id": "description",
+            "label": "Description",
+            "default": "Add a short description here."
+          }
+        ]
+      }
+    ]
+  }
+{% endschema %}
