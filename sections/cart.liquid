@@ -5,29 +5,441 @@
   https://shopify.dev/docs/storefronts/themes/architecture/templates/cart
 {% endcomment %}
 
-<h1>{{ 'cart.title' | t }}</h1>
+<div class="breadcrumb full-width">
+  <a href="{{ routes.root_url }}">Home</a> /
+  {{ 'cart.title' | t }}
+</div>
 
-<form action="{{ routes.cart_url }}" method="post">
-  <table>
-    {% for item in cart.items %}
-      <tr>
-        <td>
-          {% render 'image', image: item.image, url: item.url %}
-        </td>
-        <td>
-          <p>{{ item.product.title }}</p>
-          {{ 'cart.remove' | t | link_to: item.url_to_remove }}
-        </td>
-        <td>
-          <input type="text" name="updates[]" value="{{ item.quantity }}">
-          <input type="submit" value="{{ 'cart.update' | t }}">
-        </td>
-      </tr>
-    {% endfor %}
-  </table>
+<div class="cart-layout full-width">
+  {% if cart.items.size > 0 %}
+    <div class="cart-items">
+      <h1 class="cart-title">{{ 'cart.title' | t }}</h1>
+      <p class="cart-count">{{ cart.item_count }} {{ cart.item_count | pluralize: 'item', 'items' }}</p>
 
-  <input type="submit" name="checkout" value="{{ 'cart.checkout' | t }}">
-</form>
+      {%- render 'divider' -%}
+
+      <form action="{{ routes.cart_url }}" method="post" class="cart-form">
+        {% for item in cart.items %}
+          <div class="cart-item">
+            <a href="{{ item.url }}" class="cart-item__image">
+              {% render 'image', image: item.image %}
+            </a>
+            <div class="cart-item__details">
+              <div class="cart-item__info">
+                {%- if item.product.collections != blank -%}
+                  <p class="cart-item__collection">{{ item.product.collections.first.title | upcase }}</p>
+                {%- endif -%}
+                <a href="{{ item.url }}" class="cart-item__title">{{ item.product.title }}</a>
+                {% unless item.product.has_only_default_variant %}
+                  <p class="cart-item__variant">{{ item.variant.title }}</p>
+                {% endunless %}
+                <p class="cart-item__price">{{ item.price | money_with_currency }}</p>
+              </div>
+              <div class="cart-item__actions">
+                <div class="cart-item__quantity">
+                  <label class="visually-hidden" for="quantity-{{ item.index | plus: 1 }}">Quantity</label>
+                  <button type="button" class="qty-btn" data-qty-minus data-index="{{ item.index | plus: 1 }}">−</button>
+                  <input
+                    type="number"
+                    id="quantity-{{ item.index | plus: 1 }}"
+                    name="updates[]"
+                    value="{{ item.quantity }}"
+                    min="0"
+                    class="qty-input"
+                  >
+                  <button type="button" class="qty-btn" data-qty-plus data-index="{{ item.index | plus: 1 }}">+</button>
+                </div>
+                <a href="{{ item.url_to_remove }}" class="cart-item__remove">{{ 'cart.remove' | t }}</a>
+              </div>
+            </div>
+          </div>
+          {%- render 'divider' -%}
+        {% endfor %}
+
+        <noscript>
+          <div class="cart-update">
+            <input type="submit" value="{{ 'cart.update' | t }}" class="btn-update">
+          </div>
+        </noscript>
+      </form>
+    </div>
+
+    <aside class="cart-summary">
+      <h2 class="cart-summary__heading">Order Summary</h2>
+
+      {%- render 'divider' -%}
+
+      <div class="cart-summary__row">
+        <span>Subtotal</span>
+        <span>{{ cart.total_price | money_with_currency }}</span>
+      </div>
+      <div class="cart-summary__row cart-summary__row--muted">
+        <span>Shipping</span>
+        <span>Calculated at checkout</span>
+      </div>
+
+      {%- render 'divider' -%}
+
+      <div class="cart-summary__row cart-summary__total">
+        <span>Total</span>
+        <span>{{ cart.total_price | money_with_currency }}</span>
+      </div>
+
+      <form action="{{ routes.cart_url }}" method="post">
+        <input type="submit" name="checkout" value="{{ 'cart.checkout' | t }}" class="btn-checkout">
+      </form>
+
+      <a href="{{ routes.root_url }}" class="btn-continue">CONTINUE SHOPPING</a>
+    </aside>
+  {% else %}
+    <div class="cart-empty">
+      <h1 class="cart-title">{{ 'cart.title' | t }}</h1>
+      <p class="cart-empty__message">Your cart is currently empty.</p>
+      <a href="{{ routes.root_url }}" class="btn-checkout">CONTINUE SHOPPING</a>
+    </div>
+  {% endif %}
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('[data-qty-minus]').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var input = this.parentElement.querySelector('.qty-input');
+        var val = parseInt(input.value, 10);
+        if (val > 1) input.value = val - 1;
+      });
+    });
+    document.querySelectorAll('[data-qty-plus]').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var input = this.parentElement.querySelector('.qty-input');
+        input.value = parseInt(input.value, 10) + 1;
+      });
+    });
+  });
+</script>
+
+{%- stylesheet -%}
+  /* ===================== Cart Layout ===================== */
+  .cart-layout {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    padding: 0 10px;
+  }
+
+  .cart-title {
+    color: #131604;
+    font-family: 'Orpheus Pro';
+    font-size: 28px;
+    font-weight: 400;
+    line-height: 30.8px;
+  }
+
+  .cart-count {
+    color: rgba(19, 22, 4, 0.6);
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 19.6px;
+    letter-spacing: 0.4px;
+    margin: 8px 0 16px;
+  }
+
+  /* ===================== Cart Items ===================== */
+  .cart-item {
+    display: flex;
+    gap: 16px;
+    padding: 16px 0;
+  }
+
+  .cart-item__image {
+    width: 100px;
+    height: 100px;
+    flex-shrink: 0;
+    display: block;
+  }
+
+  .cart-item__image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .cart-item__details {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 12px;
+  }
+
+  .cart-item__collection {
+    color: rgba(19, 22, 4, 0.6);
+    font-size: 12px;
+    font-weight: 400;
+    letter-spacing: 0.4px;
+    margin-bottom: 4px;
+  }
+
+  .cart-item__title {
+    color: #131604;
+    font-family: 'Orpheus Pro';
+    font-size: 16px;
+    font-weight: 400;
+    line-height: 22.4px;
+    text-decoration: none;
+    display: block;
+  }
+
+  .cart-item__variant {
+    color: rgba(19, 22, 4, 0.6);
+    font-size: 13px;
+    font-weight: 400;
+    line-height: 18.2px;
+    margin-top: 2px;
+  }
+
+  .cart-item__price {
+    color: #131604;
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 19.6px;
+    letter-spacing: 0.4px;
+    margin-top: 4px;
+  }
+
+  .cart-item__actions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+
+  .cart-item__quantity {
+    display: flex;
+    align-items: center;
+    border: 1px solid rgba(19, 22, 4, 0.15);
+  }
+
+  .qty-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    font-size: 16px;
+    color: #131604;
+    padding: 0;
+  }
+
+  .qty-btn:hover {
+    background: rgba(19, 22, 4, 0.05);
+  }
+
+  .qty-input {
+    width: 40px;
+    height: 36px;
+    text-align: center;
+    border: none;
+    border-left: 1px solid rgba(19, 22, 4, 0.15) !important;
+    border-right: 1px solid rgba(19, 22, 4, 0.15) !important;
+    font-size: 14px;
+    color: #131604;
+    background: transparent;
+    -moz-appearance: textfield;
+    padding: 0;
+  }
+
+  .qty-input::-webkit-outer-spin-button,
+  .qty-input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+
+  .cart-item__remove {
+    color: rgba(19, 22, 4, 0.6);
+    font-size: 12px;
+    font-weight: 400;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+
+  .cart-item__remove:hover {
+    color: #131604;
+  }
+
+  /* ===================== Cart Summary ===================== */
+  .cart-summary {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding: 24px;
+    background: rgba(19, 22, 4, 0.02);
+    border: 1px solid rgba(19, 22, 4, 0.1);
+  }
+
+  .cart-summary__heading {
+    color: #131604;
+    font-family: 'Orpheus Pro';
+    font-size: 20px;
+    font-weight: 400;
+    line-height: 26px;
+  }
+
+  .cart-summary__row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: #131604;
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 19.6px;
+    letter-spacing: 0.4px;
+  }
+
+  .cart-summary__row--muted {
+    color: rgba(19, 22, 4, 0.6);
+    font-size: 13px;
+  }
+
+  .cart-summary__total {
+    font-size: 16px;
+    font-weight: 500;
+  }
+
+  .btn-checkout {
+    display: flex;
+    height: 48px;
+    padding: 0 32px;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    background: #706a38;
+    color: #fefdfc;
+    font-size: 14px;
+    font-weight: 500;
+    border: none;
+    cursor: pointer;
+    text-decoration: none;
+    text-align: center;
+  }
+
+  .btn-continue {
+    display: flex;
+    height: 48px;
+    padding: 0 32px;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    color: #131604;
+    border: 1px solid #131604 !important;
+    background: transparent;
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 16.8px;
+    cursor: pointer;
+    text-decoration: none;
+  }
+
+  .btn-update {
+    display: flex;
+    height: 40px;
+    padding: 0 24px;
+    justify-content: center;
+    align-items: center;
+    color: #131604;
+    border: 1px solid rgba(19, 22, 4, 0.3) !important;
+    background: transparent;
+    font-size: 13px;
+    font-weight: 400;
+    cursor: pointer;
+    margin: 8px 0;
+  }
+
+  /* ===================== Cart Empty ===================== */
+  .cart-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+    padding: 60px 20px;
+    text-align: center;
+  }
+
+  .cart-empty__message {
+    color: rgba(19, 22, 4, 0.6);
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 19.6px;
+    letter-spacing: 0.4px;
+    margin-bottom: 8px;
+  }
+
+  .cart-empty .btn-checkout {
+    max-width: 300px;
+  }
+
+  .visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  /* ===================== Mobile (max 767px) ===================== */
+  @media screen and (max-width: 767px) {
+    .cart-layout {
+      padding: 0;
+    }
+    .cart-items {
+      padding: 0 10px;
+    }
+    .cart-summary {
+      margin: 0 10px;
+    }
+    .cart-item__image {
+      width: 80px;
+      height: 80px;
+    }
+  }
+
+  /* ===================== Tablet (768px - 1279px) ===================== */
+  @media screen and (min-width: 768px) and (max-width: 1279px) {
+    .cart-layout {
+      padding: 0 40px;
+    }
+    .cart-item__image {
+      width: 120px;
+      height: 120px;
+    }
+  }
+
+  /* ===================== Desktop (min 1280px) ===================== */
+  @media screen and (min-width: 1280px) {
+    .cart-layout {
+      display: grid;
+      grid-template-columns: 1fr 400px;
+      gap: 40px;
+      align-items: start;
+      padding: 0 40px;
+    }
+    .cart-summary {
+      position: sticky;
+      top: 130px;
+    }
+    .cart-item__image {
+      width: 140px;
+      height: 140px;
+    }
+  }
+{%- endstylesheet -%}
 
 {% schema %}
 {

@@ -1,50 +1,1522 @@
-{% comment %}
-  This section is used in the product template to render product page with
-  media, content, and add-to-cart form.
+{%- liquid
+  assign displayed_product = product
 
-  https://shopify.dev/docs/storefronts/themes/architecture/templates/product
-{% endcomment %}
+  if displayed_product == blank and section.settings.fallback_product != blank
+    assign displayed_product = section.settings.fallback_product
+  endif
 
-<div class="product-images">
-  {% for image in product.images %}
-    {% render 'image', class: 'product-image', image: image %}
-  {% endfor %}
+  assign review_count = displayed_product.metafields.custom.review_count.value
+  assign review_rating = displayed_product.metafields.custom.average_rating.value
+
+  assign metal_values = ''
+  assign ring_size_values = ''
+  for variant in displayed_product.variants
+    if metal_values == ''
+      assign metal_values = variant.option1
+    else
+      assign metal_values = metal_values | append: ',' | append: variant.option1
+    endif
+    if ring_size_values == ''
+      assign ring_size_values = variant.option2
+    else
+      assign ring_size_values = ring_size_values | append: ',' | append: variant.option2
+    endif
+  endfor
+  assign metal_values = metal_values | split: ',' | uniq
+  assign ring_size_values = ring_size_values | split: ',' | uniq
+
+  assign active_shape_name = ''
+  for block in section.blocks
+    if block.type == 'shape' and block.settings.is_active
+      assign active_shape_name = block.settings.name
+    endif
+  endfor
+-%}
+
+<div class="breadcrumb full-width">
+  <a href="{{ routes.root_url }}">Home</a> /
+  <a href="{{ displayed_product.collections.first.url }}">{{ displayed_product.collections.first.title }}</a> /
+  {{ displayed_product.title }}
 </div>
 
-<div class="product-info">
-  <h1>{{ product.title }}</h1>
-  <p>{{ product.price | money }}</p>
-  <p>{{ product.description }}</p>
-</div>
+{% if displayed_product != blank %}
+  <div class="product-layout full-width">
+    <div class="product-gallery">
+      <!-- Main gallery: Swiper on mobile, CSS grid on desktop -->
+      <div class="swiper product-gallery__swiper">
+        <div class="swiper-wrapper">
+          {% for media in displayed_product.media %}
+            <div class="swiper-slide">
+              {% case media.media_type %}
+                {% when 'image' %}
+                  {% render 'image', class: 'product-image', image: media %}
+                {% when 'video' %}
+                  <div class="product-video">
+                    {{ media | video_tag: autoplay: true, loop: true, muted: true, controls: false, playsinline: true }}
+                  </div>
+                {% when 'external_video' %}
+                  <div class="product-video">
+                    {{ media | external_video_tag: autoplay: true, loop: true, mute: true }}
+                  </div>
+              {% endcase %}
+            </div>
+          {% endfor %}
+        </div>
+        <div class="swiper-button-prev">
+          <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle opacity="0.06" cx="16" cy="16" r="16" transform="matrix(-1 0 0 1 32 0)" fill="#131604"/>
+            <path d="M18.8 22.4L12.4 16L18.8 9.60001" stroke="#131604" stroke-opacity="0.8" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <div class="swiper-button-next">
+          <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle opacity="0.06" cx="16" cy="16" r="16" fill="#131604"/>
+            <path d="M13.2 22.4L19.6 16L13.2 9.60001" stroke="#131604" stroke-opacity="0.8" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+      </div>
 
-<div class="product-form">
-  {% form 'product', product %}
-    {% assign current_variant = product.selected_or_first_available_variant %}
+      <!-- Thumbnails (mobile only) -->
+      <div class="product-gallery__thumbs">
+        <div class="swiper product-thumbs__swiper">
+          <div class="swiper-wrapper">
+            {% for media in displayed_product.media %}
+              <div class="swiper-slide">
+                {% render 'image',
+                  class: 'product-thumb',
+                  image: media.preview_image,
+                  width: 80,
+                  height: 80,
+                  crop: 'center'
+                %}
+                {% if media.media_type == 'video' or media.media_type == 'external_video' %}
+                  <div class="thumb-play-icon">
+                    <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M3 2L10 6L3 10V2Z" fill="#fff"/>
+                    </svg>
+                  </div>
+                {% endif %}
+              </div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+    </div>
 
-    <select name="id">
-      {% for variant in product.variants %}
-        <option
-          value="{{ variant.id }}"
-          {% if variant == current_variant %}
-            selected="selected"
-          {% endif %}
-        >
-          {{ variant.title }} - {{ variant.price | money }}
-        </option>
-      {% endfor %}
-    </select>
+    <aside class="product-info">
+      {%- if displayed_product.collections != blank -%}
+        <p class="product_collection">{{ displayed_product.collections.first.title | upcase }}</p>
+      {%- endif -%}
+      <h1 class="product_title">{{ displayed_product.title }}</h1>
+      <div class="product_reviews">
+        {{ 'stars-reviews.svg' | inline_asset_content }}
+        <p>{{ review_count }} reviews</p>
+      </div>
+      <p class="product_price">
+        <span class="price">{{ displayed_product.price | money_with_currency }}</span> (SETTING ONLY)
+      </p>
 
-    <input type="text" name="quantity" min="1" value="1">
+      <div class="finantial-info">
+        <p>Starting at $28/mo with</p>
+        <a href="{{ routes.root_url }}" aria-label="affirm">
+          <img
+            src="{{ 'icon-affirm.svg' | asset_url }}"
+            alt="{{ shop.name }}"
+            width="40"
+            height="16"
+            loading="eager"
+          >
+        </a>
+        <a href="/pages/shipping" class="shipping-link">Prequalify now</a>
+      </div>
+      <p class="product_description">{{ displayed_product.description | strip_html }}</p>
 
-    <input type="submit" value="Add to cart">
-    {{ form | payment_button }}
-  {% endform %}
-</div>
+      {%- render 'divider' -%}
+
+      <div class="product-form">
+        {% form 'product', displayed_product %}
+          {% assign current_variant = displayed_product.selected_or_first_available_variant %}
+
+          <div class="shape-content">
+            <div class="title">
+              <strong>Shape:</strong>
+              {%- for block in section.blocks -%}
+                {%- if block.type == 'shape' and block.settings.is_active -%}
+                  <span>{{ block.settings.name }}</span>
+                {%- endif -%}
+              {%- endfor -%}
+              {%- render 'icon-info' -%}
+            </div>
+            <div class="shapes">
+              {%- for block in section.blocks -%}
+                {%- if block.type == 'shape' -%}
+                  <a
+                    href="{{ block.settings.product_link }}"
+                    class="shape-item{% if block.settings.is_active %} shape-item--active{% endif %}"
+                    {{ block.shopify_attributes }}
+                  >
+                    {%- if block.settings.image != blank -%}
+                      <img
+                        src="{{ block.settings.image | image_url: width: 100 }}"
+                        alt="{{ block.settings.name | escape }}"
+                        width="50"
+                        height="50"
+                        loading="lazy"
+                      >
+                    {%- endif -%}
+                  </a>
+                {%- endif -%}
+              {%- endfor -%}
+            </div>
+            <input type="hidden" name="properties[Shape]" value="{{ active_shape_name }}">
+          </div>
+          {%- render 'divider' -%}
+
+          <div class="metal-content">
+            <div class="title">
+              <strong>Metal:</strong>
+              <span data-selected-metal>{{ current_variant.option1 }}</span>
+              {%- render 'icon-info' -%}
+            </div>
+            <div class="metal-options">
+              {%- for block in section.blocks -%}
+                {%- if block.type == 'metal_option' -%}
+                  {%- assign metal = block.settings.metal_value -%}
+                  {%- assign metal_abbr = metal | split: ' ' | first | upcase -%}
+                  <button
+                    type="button"
+                    class="metal-btn{% if metal == current_variant.option1 %} metal-btn--active{% endif %}"
+                    data-metal-value="{{ metal }}"
+                    aria-label="{{ metal }}"
+                    aria-pressed="{% if metal == current_variant.option1 %}true{% else %}false{% endif %}"
+                    {{ block.shopify_attributes }}
+                  >
+                    {%- if block.settings.image != blank -%}
+                      <img
+                        src="{{ block.settings.image | image_url: width: 120 }}"
+                        alt="{{ metal | escape }}"
+                        width="60"
+                        height="60"
+                        loading="lazy"
+                      >
+                    {%- endif -%}
+                    <span class="metal-btn__label">{{ metal_abbr }}</span>
+                  </button>
+                {%- endif -%}
+              {%- endfor -%}
+            </div>
+          </div>
+
+          {%- render 'divider' -%}
+
+          <div class="carant-content">
+            <div class="title">
+              <strong>Carat Weight:</strong>
+              <span data-carat-display>1</span> ct
+              {%- render 'icon-info' -%}
+            </div>
+            <div class="carat-range">
+              <span class="carat-range__min">1 ct</span>
+              <div class="carat-range__track">
+                <input
+                  type="range"
+                  name="properties[Carat Weight]"
+                  min="1"
+                  max="5"
+                  step="0.5"
+                  value="4"
+                  data-carat-slider
+                >
+                <output class="carat-range__tooltip" data-carat-tooltip>1 carat</output>
+              </div>
+              <span class="carat-range__max">5 ct</span>
+            </div>
+          </div>
+
+          {%- render 'divider' -%}
+
+          <div class="ring-content">
+            <div class="ring-content__row">
+              <div class="title">
+                <strong>Ring Size:</strong>
+                <span data-selected-ring-size>{{ current_variant.option2 }}</span>
+                {%- render 'icon-info' -%}
+              </div>
+              <div class="ring-size">
+                <select data-ring-size-select>
+                  {%- for size in ring_size_values -%}
+                    <option
+                      value="{{ size }}"
+                      {% if size == current_variant.option2 %}
+                        selected
+                      {% endif %}
+                    >
+                      {{ size }}
+                    </option>
+                  {%- endfor -%}
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <input type="hidden" name="id" value="{{ current_variant.id }}" data-variant-id>
+          <input type="hidden" name="quantity" min="1" value="1">
+
+          <div class="product-actions">
+            <input class="add-to-cart" type="submit" value="ADD TO BAG">
+            <button class="btn-favorite" type="button" aria-label="Add to favorites">
+              {{ 'icon-favorites.svg' | inline_asset_content }}
+            </button>
+          </div>
+          <button class="make-inquiry" type="button">MAKE AN INQUIRY</button>
+        {% endform %}
+
+        <div class="floating-cta" data-floating-cta>
+          <button type="button" class="floating-cta__btn" data-floating-cta-btn>ADD TO BAG</button>
+        </div>
+
+        {%- render 'divider' -%}
+        <div class="product-shipping">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+            <path d="M24 11.181L21.3708 6.39588H18.7222V4.52209H2.17045V7.34837H0V8.7537H2.17045V10.0477H0V11.4531H2.17045V12.7199H0V14.1252H2.17045V15.5774H1.03058V16.9827H5.07317C5.19243 18.3784 6.3658 19.4779 7.79179 19.4779C9.21778 19.4779 10.3911 18.3784 10.5104 16.9827H15.3009C15.4201 18.3784 16.5935 19.4779 18.0195 19.4779C19.4455 19.4779 20.6189 18.3784 20.7381 16.9827H24V11.181ZM22.1095 10.6587H18.7222V7.80121H20.5395L22.1095 10.6587ZM7.79179 18.0725C7.06172 18.0725 6.46778 17.4786 6.46778 16.7485C6.46778 16.0184 7.06172 15.4245 7.79179 15.4245C8.52186 15.4245 9.11581 16.0184 9.11581 16.7485C9.11581 17.4786 8.52186 18.0725 7.79179 18.0725ZM15.5547 15.5774H10.2567C9.81754 14.6569 8.87784 14.0191 7.79184 14.0191C6.70584 14.0191 5.76614 14.6569 5.32702 15.5774H3.57578V14.1252H4.91868V12.7199H3.57578V11.4531H8.79113V10.0477H3.57578V8.7537H5.19974V7.34837H3.57578V5.92743H17.3168V14.1113C16.5383 14.3189 15.8956 14.8628 15.5547 15.5774ZM18.0195 18.0725C17.2895 18.0725 16.6955 17.4786 16.6955 16.7485C16.6955 16.0184 17.2895 15.4245 18.0195 15.4245C18.7496 15.4245 19.3436 16.0184 19.3436 16.7485C19.3436 17.4786 18.7496 18.0725 18.0195 18.0725ZM20.4844 15.5774C20.1434 14.8628 19.5008 14.3189 18.7222 14.1113V12.0641H19.9558V13.4226H21.3611V12.0641H22.5947V15.5774H20.4844Z" fill="#050505"/>
+            <rect y="7.34375" width="5.21289" height="1.41724" fill="#706A38"/>
+            <rect y="12.7018" width="4.94141" height="1.427" fill="#706A38"/>
+            <rect y="10.0497" width="8.80176" height="1.40527" fill="#706A38"/>
+          </svg>
+          <div class="product-shipping-info">
+            {{ section.settings.shipping_info }}
+          </div>
+        </div>
+
+        <div class="contact-details">
+          <button class="contact-btn">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" fill="none">
+              <path d="M2.5 8.33337L10.2143 12.5L17.5 8.33337" stroke="#131604" stroke-opacity="0.8" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M2.5 8.3921C2.5 7.83485 2.7785 7.31446 3.24217 7.00535L9.0755 3.11646C9.63533 2.74324 10.3647 2.74324 10.9245 3.11646L16.7578 7.00535C17.2215 7.31446 17.5 7.83485 17.5 8.3921V15.0001C17.5 15.9206 16.7538 16.6668 15.8333 16.6668H4.16667C3.24619 16.6668 2.5 15.9206 2.5 15.0001V8.3921Z" stroke="#131604" stroke-opacity="0.8" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M10 9.16671C10 9.16671 5 6.55601 5 3.42313C5 0.290261 8.88889 0.0291898 10 2.48036C11.1111 0.0291898 15 0.290261 15 3.42313C15 6.55601 10 9.16671 10 9.16671Z" fill="#706A38"/>
+            </svg>
+            Drop Hint
+          </button>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="1"
+            height="24"
+            viewBox="0 0 1 24"
+            fill="none"
+            aria-hidden="true"
+            focusable="false"
+          >
+            <path d="M0.5 0V24" stroke="#131604" stroke-opacity="0.1"/>
+          </svg>
+          <button class="contact-btn">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" fill="none">
+              <path d="M17.5 10C17.5 14.1421 14.1421 17.5 10 17.5C8.52412 17.5 7.1478 17.0737 5.98747 16.3375L2.5 17.5L3.66249 14.0125C2.9263 12.8522 2.5 11.4759 2.5 10C2.5 5.85786 5.85786 2.5 10 2.5C14.1421 2.5 17.5 5.85786 17.5 10Z" stroke="#131604" stroke-opacity="0.8" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            Chat
+          </button>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="1"
+            height="24"
+            viewBox="0 0 1 24"
+            fill="none"
+            aria-hidden="true"
+            focusable="false"
+          >
+            <path d="M0.5 0V24" stroke="#131604" stroke-opacity="0.1"/>
+          </svg>
+          <button class="contact-btn">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" fill="none">
+              <path d="M2.93531 6.1021C4.26404 11.4927 8.50729 15.736 13.8979 17.0647C15.8478 17.5453 17.5 15.8719 17.5 13.8636V12.7841C17.5 12.282 17.0921 11.8796 16.5923 11.8316C15.7116 11.747 14.8665 11.5405 14.074 11.2293L12.6497 12.6536C10.3331 11.545 8.45501 9.66691 7.34639 7.35031L8.77072 5.92599C8.45946 5.13353 8.253 4.28843 8.16838 3.40772C8.12036 2.90795 7.71799 2.5 7.21591 2.5H6.13636C4.12806 2.5 2.45466 4.15215 2.93531 6.1021Z" stroke="#131604" stroke-opacity="0.8" stroke-width="1.36364" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            1-855-234-5678
+          </button>
+        </div>
+
+        <div class="product-details">
+          {%- assign first_detail_opened = false -%}
+          {%- for block in section.blocks -%}
+            {%- if block.type == 'product_detail' -%}
+              <details
+                class="product-details__item"
+                {% unless first_detail_opened %}
+                  open
+                {% endunless %}
+                {{ block.shopify_attributes }}
+              >
+                <summary class="product-details__summary">
+                  <span>{{ block.settings.title }}</span>
+                  <span class="product-details__icon" aria-hidden="true">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="9" height="5" viewBox="0 0 9 5" fill="none">
+                      <path d="M0.5 0.5L4.5 4.5L8.5 0.5" stroke="#131604" stroke-opacity="0.8" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                  </span>
+                </summary>
+                <div class="product-details__content rte">
+                  {{ block.settings.content | replace: '<p>&nbsp;</p>', '<br>' | replace: '<p></p>', '' }}
+                </div>
+              </details>
+              {%- assign first_detail_opened = true -%}
+            {%- endif -%}
+          {%- endfor -%}
+        </div>
+
+        <div class="product-benefits">
+          <div class="benefit">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" fill="none">
+              <g clip-path="url(#clip0_1_328)">
+                <path d="M9.52734 0.457031C8.76172 1.23828 8.23047 1.67578 7.46094 2.16797C6.07812 3.04297 4.36328 3.63281 2.79297 3.76953C2.64453 3.78125 2.45312 3.80078 2.37109 3.8125L2.22656 3.83594L2.23438 8.83984L2.24609 13.8477L2.33984 14.0625C2.77344 15.0312 3.87109 16.1875 5.46875 17.3438C6.55078 18.1328 7.99609 19.0078 9.30859 19.6719L10 20.0195L10.6875 19.6719C12.9297 18.5391 14.9453 17.1758 16.2461 15.9141C16.957 15.2266 17.3984 14.6484 17.6602 14.0625L17.7539 13.8477L17.7656 8.83984L17.7734 3.83594L17.6289 3.8125C17.5469 3.80078 17.3594 3.78125 17.207 3.76953C15.6367 3.63281 13.9219 3.04297 12.5391 2.16797C11.7695 1.67578 11.2383 1.23828 10.4727 0.457031C10.2266 0.207031 10.0117 0 10 0C9.98828 0 9.77344 0.207031 9.52734 0.457031ZM10.3945 2.00391C12.0469 3.45312 14.0078 4.40625 16.1133 4.78125L16.582 4.86328L16.5938 9.21484L16.6016 13.5625L16.5 13.7617C16.3359 14.0938 15.9922 14.5234 15.5117 15C14.3359 16.168 12.5977 17.3594 10.3242 18.5547L10 18.7266L9.64062 18.5352C8.37109 17.8711 6.95703 17.0078 6.08594 16.3594C4.84766 15.4414 3.82422 14.4141 3.5 13.7617L3.39844 13.5625L3.40625 9.21484L3.41797 4.86328L3.88672 4.78125C5.99219 4.40625 7.95312 3.45312 9.60547 2.00391C9.80859 1.82422 9.98438 1.67969 10 1.67969C10.0156 1.67969 10.1914 1.82422 10.3945 2.00391Z" fill="#706A38"/>
+                <path d="M9.53125 4.14062C9.30469 4.32031 8.48438 4.82422 8 5.07422C7.14062 5.52344 6.12891 5.92188 5.26562 6.15234L5 6.22266V9.59375V12.9688H5.58594H6.17188L6.17969 10.0352L6.19141 7.10547L6.69922 6.91797C7.63281 6.57422 8.26562 6.28516 9.02344 5.84766C9.45312 5.60156 10.3008 5.05469 10.332 5C10.3555 4.96484 9.72656 4.09375 9.66797 4.07812C9.64844 4.07031 9.58594 4.09766 9.53125 4.14062Z" fill="#706A38"/>
+              </g>
+              <defs>
+                <clipPath id="clip0_1_328">
+                  <rect width="20" height="20" fill="white"/>
+                </clipPath>
+              </defs>
+            </svg>
+            Lifetime Warranty
+          </div>
+          <div class="benefit">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" fill="none">
+              <g clip-path="url(#clip0_1_334)">
+                <path d="M14.9886 0.253906C14.1331 0.390625 13.4261 0.507812 13.4222 0.515625C13.4144 0.523438 13.3636 1.21094 13.305 2.05078C13.2073 3.41797 13.1878 3.58203 13.1214 3.65625L13.0472 3.73828L12.68 3.55078C11.0042 2.68359 9.01594 2.39453 7.12141 2.73438C4.41828 3.22266 2.07453 5 0.855783 7.49219C0.558908 8.09766 0.265939 8.98047 0.133127 9.67578C-0.00749819 10.4102 -0.0426544 11.6914 0.0589081 12.4453C0.531564 15.9922 3.08235 18.8633 6.53938 19.7461C7.88313 20.0898 9.555 20.0898 10.8675 19.7461C13.8909 18.9609 16.2191 16.6797 17.0902 13.6562C17.6761 11.6133 17.4378 9.23047 16.4495 7.32031L16.262 6.95312L16.3441 6.87891C16.4183 6.8125 16.5823 6.79297 17.9495 6.69922C18.7894 6.64062 19.4808 6.58594 19.4847 6.58203C19.5042 6.5625 20.0003 3.39453 20.0003 3.28125C20.0003 3.20312 19.6605 2.84375 18.4066 1.58984C16.9027 0.0859375 16.8089 0 16.68 0.00390625C16.6058 0.0078125 15.8441 0.117188 14.9886 0.253906ZM17.5355 2.47656L18.723 3.66406L18.6566 4.08984C18.6214 4.32031 18.5823 4.5625 18.5667 4.625C18.5472 4.73047 18.4769 4.66797 16.9105 3.10156C16.012 2.20312 15.2816 1.46094 15.2894 1.45703C15.3089 1.4375 16.1292 1.30078 16.2503 1.29297C16.3284 1.28906 16.5784 1.51953 17.5355 2.47656ZM17.5667 5.49219C17.5628 5.5 17.2855 5.52344 16.9573 5.55078L16.3558 5.59375L15.3831 4.625L14.4105 3.65234L14.43 3.33984C14.4456 3.16797 14.4652 2.89062 14.4808 2.71875L14.5042 2.41406L16.0394 3.94922C16.8831 4.79297 17.5706 5.48828 17.5667 5.49219ZM9.26203 3.82812C10.5316 3.93359 11.7698 4.35547 12.805 5.03516C13.0042 5.16797 13.1878 5.27344 13.2152 5.27344C13.2386 5.27344 13.3792 5.15625 13.5238 5.01172L13.7894 4.74609L14.5198 5.48047L15.2542 6.21094L14.9886 6.47656C14.8441 6.62109 14.7269 6.76172 14.7269 6.78516C14.7269 6.8125 14.8284 6.98828 14.9534 7.17969C15.5589 8.09766 15.9417 9.10938 16.1214 10.2461C16.2034 10.7773 16.2034 11.8398 16.1175 12.3828C15.6136 15.6289 13.2113 18.0859 9.94172 18.6992C9.44172 18.793 8.27375 18.8086 7.71906 18.7344C4.32453 18.2578 1.7425 15.6758 1.26594 12.2773C1.19172 11.7266 1.20735 10.5547 1.3011 10.0586C1.8636 7.06641 3.97297 4.77734 6.84797 4.04688C7.69953 3.82812 8.44563 3.76172 9.26203 3.82812Z" fill="#706A38"/>
+                <path d="M7.91047 4.81255C7.2425 4.88677 6.51985 5.09771 5.85969 5.41411C3.93 6.33599 2.59016 8.12896 2.2425 10.2579C2.15657 10.7657 2.14875 11.7813 2.22297 12.2461C2.48469 13.9102 3.28938 15.3282 4.5511 16.3633C5.46907 17.1133 6.52766 17.5821 7.75422 17.7774C8.21907 17.8516 9.23469 17.8438 9.7425 17.7579C12.3441 17.3321 14.4066 15.4336 15.0355 12.8907C15.7581 9.93755 14.4378 6.96099 11.7581 5.51568C10.6527 4.92193 9.23469 4.66021 7.91047 4.81255ZM9.77375 6.0938C10.8323 6.31646 11.68 6.78521 12.4613 7.57427C13.2464 8.36333 13.6839 9.17193 13.9144 10.2422C14.0277 10.7735 14.0355 11.7618 13.9339 12.2774C13.6019 13.9297 12.5472 15.3204 11.0589 16.0743C9.85188 16.6797 8.3675 16.7852 7.0511 16.3594C5.18782 15.7579 3.82453 14.1915 3.45735 12.2266C3.3636 11.7344 3.3636 10.8907 3.45344 10.3907C3.87922 8.03911 5.73469 6.30864 8.16438 6.00005C8.47688 5.96099 9.40266 6.01568 9.77375 6.0938Z" fill="#706A38"/>
+              </g>
+              <defs>
+                <clipPath id="clip0_1_334">
+                  <rect width="20" height="20" fill="white"/>
+                </clipPath>
+              </defs>
+            </svg>
+            Complimentary Resizing
+          </div>
+          <div class="benefit">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" fill="none">
+              <g clip-path="url(#clip0_1_340)">
+                <path d="M17.1836 0.0585938C16.4805 0.199219 15.6445 0.558594 14.9336 1.02344C14.5703 1.26172 14.3477 1.46484 13.3125 2.49219L12.1094 3.6875L11.0156 3.57422C10.4141 3.51172 9.92188 3.44922 9.92188 3.4375C9.92188 3.42578 10.0117 3.32812 10.1172 3.22266C10.2266 3.11719 10.3125 3.01172 10.3125 2.99219C10.3125 2.9375 9.52344 2.14844 9.47266 2.14844C9.45312 2.14844 9.17969 2.40234 8.86719 2.71484L8.29688 3.28516L7.73438 3.22266C7.42188 3.19141 7.10156 3.15234 7.01562 3.14062L6.86719 3.11719L7.15234 2.82812L7.44141 2.53906L7.03125 2.12891C6.80469 1.90234 6.60547 1.71875 6.58203 1.71875C6.5625 1.71875 6.26172 2 5.91797 2.33984L5.29297 2.96094L4.1875 2.84375L3.07812 2.72266L2.30078 3.5C1.875 3.92578 1.52344 4.29297 1.52344 4.31641C1.52344 4.33594 2.98438 5.16406 4.76562 6.14844L8.00391 7.94141L7.9375 8.02734C7.90234 8.07812 7.62891 8.39453 7.33594 8.73438C6.60938 9.57812 5.85547 10.5195 5.14844 11.4609C4.82422 11.8906 4.54688 12.2617 4.53125 12.2773C4.51562 12.2969 3.95312 12.1328 3.28125 11.9141L2.05859 11.5156L1.03125 12.543C0.464844 13.1094 0 13.5938 0 13.6172C0 13.6406 0.535156 14.0312 1.19141 14.4883C1.84766 14.9492 2.39062 15.3359 2.40234 15.3477C2.41016 15.3633 2.25391 15.6445 2.05078 15.9727C1.84766 16.3008 1.66016 16.6367 1.63281 16.7148C1.60547 16.793 1.58203 16.9883 1.58203 17.1484C1.58594 17.5 1.70312 17.7852 1.95703 18.0469C2.19922 18.2969 2.49219 18.418 2.85156 18.418C3.01172 18.418 3.20703 18.3945 3.28516 18.3672C3.36328 18.3398 3.69922 18.1523 4.02734 17.9492C4.35547 17.7461 4.63672 17.5898 4.64844 17.5977C4.66406 17.6055 5.05078 18.1484 5.50781 18.8047C5.96875 19.4648 6.36328 20 6.38672 20C6.40625 20 6.89062 19.5352 7.45312 18.9727L8.48438 17.9414L8.08594 16.7188C7.86719 16.0469 7.70312 15.4844 7.72266 15.4688C7.73828 15.4531 8.07812 15.1953 8.47656 14.8984C9.39453 14.2109 10.3789 13.4258 11.25 12.6758C11.6289 12.3555 11.9648 12.0664 11.9961 12.043C12.0508 12 12.293 12.4219 13.8516 15.2344C14.8359 17.0156 15.6641 18.4766 15.6836 18.4766C15.707 18.4766 16.0742 18.125 16.5 17.6992L17.2773 16.918L17.1602 15.8125L17.0391 14.707L17.6602 14.082C18 13.7383 18.2812 13.4375 18.2812 13.418C18.2812 13.3945 18.0977 13.1953 17.8711 12.9688L17.4609 12.5586L17.1719 12.8477L16.8828 13.1367L16.8594 12.9648C16.8438 12.8711 16.8086 12.5469 16.7773 12.2461L16.7188 11.7031L17.2852 11.1328C17.5977 10.8203 17.8516 10.5469 17.8516 10.5273C17.8516 10.4766 17.0625 9.6875 17.0117 9.6875C16.9883 9.6875 16.8828 9.77344 16.7773 9.88281C16.6719 9.98828 16.5742 10.0781 16.5625 10.0781C16.5508 10.0781 16.4883 9.58594 16.4258 8.98438L16.3125 7.89062L17.5039 6.6875C18.5312 5.65625 18.7383 5.42969 18.9766 5.06641C19.4492 4.34375 19.7852 3.55469 19.9375 2.80469C20.0195 2.41406 20.0195 1.69141 19.9414 1.38672C19.7617 0.699219 19.3008 0.238281 18.6133 0.0585938C18.3281 -0.015625 17.5508 -0.015625 17.1836 0.0585938ZM18.4375 1.30078C18.6445 1.40234 18.7383 1.55078 18.7891 1.85547C18.8633 2.30469 18.6914 3.01562 18.3359 3.72266C17.9609 4.47656 17.8164 4.64844 16.2539 6.22656C13.5703 8.92969 11.8516 10.5664 10.3516 11.8398C8.23438 13.6328 5.8125 15.4023 3.48047 16.8516C3.01953 17.1367 2.86719 17.2148 2.82422 17.1836C2.79688 17.1602 2.78516 17.1211 2.80078 17.0938C3.12891 16.5039 4.54688 14.3555 5.28906 13.3203C7.52734 10.207 9.46875 8.01953 13.7734 3.74609C15.3477 2.18359 15.5273 2.03906 16.2695 1.66797C17.1992 1.20312 17.9766 1.07422 18.4375 1.30078ZM7.32422 4.39453C9.28125 4.60156 10.9023 4.78125 10.9336 4.78906C10.9727 4.80078 10.7656 5.03516 10.3477 5.46094C9.99219 5.82031 9.51172 6.31641 9.27344 6.56641L8.84766 7.01562L6.17969 5.53516C4.71484 4.72266 3.52344 4.03906 3.53906 4.01953C3.55078 3.99609 3.60938 3.98828 3.66406 4C3.72266 4.01172 5.37109 4.1875 7.32422 4.39453ZM15.6094 12.7461C15.8281 14.7695 15.9922 16.4414 15.9766 16.457C15.9609 16.4766 15.2812 15.2891 14.4648 13.8203L12.9844 11.1523L13.4375 10.7227C13.6836 10.4883 14.1758 10.0117 14.5312 9.66406C14.8828 9.3125 15.1836 9.03516 15.1953 9.04688C15.207 9.05859 15.3945 10.7227 15.6094 12.7461ZM3.08594 13.1289C3.41797 13.2383 3.70312 13.3398 3.71875 13.3555C3.73438 13.3711 3.60156 13.5938 3.42188 13.8555L3.09766 14.332L2.73047 14.0742C2.52734 13.9336 2.25 13.7383 2.11328 13.6406L1.86719 13.4688L2.13281 13.1992C2.28125 13.0508 2.41797 12.9297 2.44141 12.9297C2.46094 12.9297 2.75391 13.0195 3.08594 13.1289ZM6.87891 16.9414L7.08984 17.5781L6.81641 17.8516C6.60156 18.0664 6.53516 18.1133 6.5 18.0742C6.47266 18.0508 6.27734 17.7734 6.0625 17.4648L5.66797 16.9023L6.14453 16.5742C6.40625 16.3984 6.62891 16.2656 6.64453 16.2812C6.66016 16.2969 6.76562 16.5938 6.87891 16.9414Z" fill="#706A38"/>
+              </g>
+              <defs>
+                <clipPath id="clip0_1_340">
+                  <rect width="20" height="20" fill="white"/>
+                </clipPath>
+              </defs>
+            </svg>
+            Free Express & Insured Shipping
+          </div>
+          <div class="benefit">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" fill="none">
+              <g clip-path="url(#clip0_1_345)">
+                <path d="M12.3436 1.19055V2.38196H12.9491H13.5546V1.19055V-0.000854492H12.9491H12.3436V1.19055Z" fill="#706A38"/>
+                <path d="M9.40222 1.15149C9.12878 1.33508 8.90613 1.49524 8.90613 1.50305C8.90613 1.53821 10.078 3.2804 10.0975 3.2804C10.1171 3.2804 11.035 2.67883 11.0897 2.63196C11.1014 2.62024 9.92566 0.819458 9.90613 0.819458C9.90222 0.819458 9.67957 0.967896 9.40222 1.15149Z" fill="#706A38"/>
+                <path d="M15.3905 1.69844C15.0702 2.18281 14.8046 2.59297 14.8046 2.6086C14.8046 2.6711 15.7811 3.2961 15.8163 3.25703C15.8475 3.22578 16.9022 1.64375 16.9647 1.53828C16.9803 1.51094 16.7889 1.3586 16.4843 1.15547L15.9764 0.819533L15.3905 1.69844Z" fill="#706A38"/>
+                <path d="M4.39049 1.23351C3.94909 1.30773 3.36706 1.49914 2.94909 1.70617C1.52331 2.41711 0.535025 3.64367 0.128775 5.19836L0.0233063 5.60461L0.00768126 7.45617C-0.00794374 9.54601 0.0115875 9.77257 0.257681 10.503C0.867056 12.3273 2.44518 13.7023 4.32409 14.046L4.67956 14.1085L4.69909 15.3273C4.71471 16.3976 4.72643 16.5812 4.79674 16.8585C5.2069 18.4444 6.43737 19.6163 8.02721 19.9405C8.30456 19.9952 8.80456 19.9991 12.4803 19.9913C16.6014 19.9796 16.621 19.9796 16.9217 19.8937C18.4022 19.4718 19.4803 18.3937 19.8944 16.921C19.9725 16.6359 19.9764 16.5226 19.9921 14.7726L20.0038 12.9288H19.4256H18.8436L18.8006 12.6632C18.7108 12.1085 18.3788 11.5148 17.9647 11.171C17.5975 10.8663 16.9413 10.5851 16.5936 10.5851C16.4881 10.5851 16.4842 10.5773 16.4842 10.3976C16.4842 10.1359 16.3553 9.55773 16.2342 9.25695C15.9686 8.60851 15.4686 8.00304 14.8788 7.62023L14.5428 7.40148L14.9686 6.65539L15.3944 5.90539L14.9452 5.00304L14.4921 4.1007H12.9374H11.3866L10.9452 4.97961C10.7069 5.46398 10.5077 5.87804 10.5077 5.90539C10.5077 5.92882 10.6952 6.27257 10.9217 6.66711C11.1483 7.06554 11.328 7.39367 11.3202 7.40148C11.3124 7.40929 11.1717 7.50304 11.0038 7.61242C10.0975 8.20617 9.42174 9.34679 9.41393 10.2921C9.41393 10.3976 9.39831 10.5069 9.38268 10.5304C9.36706 10.5499 9.23424 10.5929 9.08581 10.6202C8.12096 10.7921 7.28893 11.5929 7.10924 12.5187C7.08581 12.6476 7.05456 12.7921 7.04674 12.839C7.03112 12.9288 7.0194 12.9288 6.46471 12.9288H5.89831V7.04992V1.17101L5.30456 1.17492C4.97643 1.17883 4.56237 1.20226 4.39049 1.23351ZM4.68737 7.65148V12.8819L4.44518 12.8273C4.04284 12.7335 3.82799 12.6554 3.43346 12.4562C2.32799 11.8898 1.53893 10.8546 1.28503 9.62804C1.21862 9.31945 1.21081 9.08507 1.21081 7.64757C1.21081 6.4132 1.22253 5.95226 1.26549 5.73351C1.41393 4.95226 1.77331 4.25695 2.32409 3.67492C2.8944 3.07726 3.50378 2.71398 4.31628 2.49914C4.46862 2.46008 4.61315 2.42492 4.64049 2.42492C4.67565 2.42101 4.68737 3.49133 4.68737 7.65148ZM13.8592 5.56554C13.9296 5.70617 13.9842 5.84289 13.9842 5.87023C13.9842 5.89367 13.8358 6.17101 13.6561 6.47961L13.3319 7.04211L12.9413 7.04601L12.5546 7.04992L12.2147 6.45617L11.871 5.86242L12.0116 5.58507L12.1483 5.31164H12.9413H13.7342L13.8592 5.56554ZM13.5624 8.34289C14.4725 8.61242 15.1639 9.42882 15.2577 10.3468L15.285 10.5851H12.953H10.6249V10.4249C10.6249 10.003 10.8749 9.41711 11.2186 9.04211C11.8358 8.37023 12.7381 8.1007 13.5624 8.34289ZM16.7733 11.878C17.1561 12.0187 17.5038 12.4171 17.6014 12.8194L17.6249 12.9288H12.9491H8.27331L8.30065 12.7843C8.35143 12.503 8.55456 12.2062 8.80456 12.0304C9.16002 11.7882 8.96862 11.7999 12.9374 11.796C16.496 11.796 16.5624 11.796 16.7733 11.878ZM18.7889 14.7062V15.2726H12.3436H5.89831V14.7062V14.1398H12.3436H18.7889V14.7062ZM18.6835 16.6866C18.4178 17.5968 17.703 18.3351 16.7772 18.6593L16.4647 18.7687L12.4647 18.7804C8.55065 18.7882 8.4569 18.7882 8.14831 18.7101C7.21471 18.4757 6.47643 17.8351 6.12096 16.9601C6.06628 16.8312 6.01159 16.6671 5.99596 16.6046L5.96862 16.4835H12.3592H18.746L18.6835 16.6866Z" fill="#706A38"/>
+              </g>
+              <defs>
+                <clipPath id="clip0_1_345">
+                  <rect width="20" height="20" fill="white"/>
+                </clipPath>
+              </defs>
+            </svg>
+            Discreet Packaging
+          </div>
+        </div>
+      </div>
+    </aside>
+  </div>
+{% endif %}
+
+<script type="application/json" data-product-variants>
+  {{ displayed_product.variants | json }}
+</script>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    /* ===================== Swiper (existing) ===================== */
+    var mobileQuery = window.matchMedia('(max-width: 767px)');
+    var mainSwiper = null;
+    var thumbsSwiper = null;
+
+    function initSwipers() {
+      if (typeof Swiper === 'undefined') return;
+
+      thumbsSwiper = new Swiper('.product-thumbs__swiper', {
+        slidesPerView: 'auto',
+        spaceBetween: 8,
+        watchSlidesProgress: true,
+      });
+
+      mainSwiper = new Swiper('.product-gallery__swiper', {
+        slidesPerView: 1,
+        spaceBetween: 0,
+        navigation: {
+          nextEl: '.swiper-button-next',
+          prevEl: '.swiper-button-prev',
+        },
+        thumbs: {
+          swiper: thumbsSwiper,
+        },
+      });
+    }
+
+    function destroySwipers() {
+      if (mainSwiper) {
+        mainSwiper.destroy(true, true);
+        mainSwiper = null;
+      }
+      if (thumbsSwiper) {
+        thumbsSwiper.destroy(true, true);
+        thumbsSwiper = null;
+      }
+    }
+
+    function handleViewportChange(e) {
+      if (e.matches) {
+        initSwipers();
+      } else {
+        destroySwipers();
+      }
+    }
+
+    mobileQuery.addEventListener('change', handleViewportChange);
+
+    if (mobileQuery.matches) {
+      initSwipers();
+    }
+
+    /* ===================== Variant Selection ===================== */
+    var variantDataEl = document.querySelector('[data-product-variants]');
+    if (!variantDataEl) return;
+    var variants = JSON.parse(variantDataEl.textContent);
+
+    var variantIdInput = document.querySelector('[data-variant-id]');
+    var selectedMetalSpan = document.querySelector('[data-selected-metal]');
+    var selectedRingSizeSpan = document.querySelector('[data-selected-ring-size]');
+    var priceDisplay = document.querySelector('.product_price .price');
+    var metalButtons = document.querySelectorAll('.metal-btn');
+    var ringSizeSelect = document.querySelector('[data-ring-size-select]');
+    var caratSlider = document.querySelector('[data-carat-slider]');
+    var caratDisplay = document.querySelector('[data-carat-display]');
+    var addToCartBtn = document.querySelector('.add-to-cart');
+
+    var selectedMetal = selectedMetalSpan ? selectedMetalSpan.textContent.trim() : '';
+    var selectedRingSize = ringSizeSelect ? ringSizeSelect.value : '';
+
+    function findVariant(metal, ringSize) {
+      for (var i = 0; i < variants.length; i++) {
+        if (variants[i].option1 === metal && variants[i].option2 === ringSize) {
+          return variants[i];
+        }
+      }
+      return null;
+    }
+
+    function formatMoney(cents) {
+      return '$' + (cents / 100).toFixed(2) + ' USD';
+    }
+
+    function updateVariant() {
+      var variant = findVariant(selectedMetal, selectedRingSize);
+      if (variant) {
+        variantIdInput.value = variant.id;
+
+        if (priceDisplay) {
+          priceDisplay.textContent = formatMoney(variant.price);
+        }
+
+        var url = new URL(window.location);
+        url.searchParams.set('variant', variant.id);
+        window.history.replaceState({}, '', url);
+
+        if (addToCartBtn) {
+          if (variant.available) {
+            addToCartBtn.disabled = false;
+            addToCartBtn.value = 'ADD TO BAG';
+          } else {
+            addToCartBtn.disabled = true;
+            addToCartBtn.value = 'SOLD OUT';
+          }
+        }
+      } else if (addToCartBtn) {
+        addToCartBtn.disabled = true;
+        addToCartBtn.value = 'UNAVAILABLE';
+      }
+    }
+
+    metalButtons.forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        metalButtons.forEach(function (b) {
+          b.classList.remove('metal-btn--active');
+          b.setAttribute('aria-pressed', 'false');
+        });
+        btn.classList.add('metal-btn--active');
+        btn.setAttribute('aria-pressed', 'true');
+
+        selectedMetal = btn.getAttribute('data-metal-value');
+        if (selectedMetalSpan) selectedMetalSpan.textContent = selectedMetal;
+
+        updateVariant();
+      });
+    });
+
+    if (ringSizeSelect) {
+      ringSizeSelect.addEventListener('change', function () {
+        selectedRingSize = this.value;
+        if (selectedRingSizeSpan) selectedRingSizeSpan.textContent = selectedRingSize;
+        updateVariant();
+      });
+    }
+
+    var caratTooltip = document.querySelector('[data-carat-tooltip]');
+
+    function updateCaratSlider() {
+      if (!caratSlider) return;
+      var min = parseFloat(caratSlider.min);
+      var max = parseFloat(caratSlider.max);
+      var val = parseFloat(caratSlider.value);
+      var ratio = (val - min) / (max - min);
+      var progress = ratio * 100;
+      var track = caratSlider.closest('.carat-range__track');
+      if (track) {
+        track.style.setProperty('--carat-progress', progress + '%');
+        // Compensate for thumb width (22px) so tooltip aligns with thumb center
+        var thumbHalf = 11;
+        var trackWidth = caratSlider.offsetWidth;
+        var thumbPos = thumbHalf + ratio * (trackWidth - 2 * thumbHalf);
+        track.style.setProperty('--carat-tooltip-left', thumbPos + 'px');
+      }
+      if (caratDisplay) caratDisplay.textContent = val;
+      if (caratTooltip) caratTooltip.textContent = val + ' carat';
+    }
+
+    if (caratSlider) {
+      updateCaratSlider();
+      caratSlider.addEventListener('input', updateCaratSlider);
+    }
+
+    /* ===================== Floating CTA (Mobile) ===================== */
+    var mobileQuery = window.matchMedia('(max-width: 767px)');
+    var floatingCta = document.querySelector('[data-floating-cta]');
+    var floatingCtaBtn = document.querySelector('[data-floating-cta-btn]');
+    var observer = null;
+
+    function syncFloatingState() {
+      if (!floatingCtaBtn || !addToCartBtn) return;
+      floatingCtaBtn.textContent = addToCartBtn.value;
+      floatingCtaBtn.disabled = addToCartBtn.disabled;
+    }
+
+    function initFloatingCta() {
+      if (!floatingCta || !addToCartBtn) return;
+
+      observer = new IntersectionObserver(
+        function (entries) {
+          entries.forEach(function (entry) {
+            if (entry.isIntersecting) {
+              floatingCta.classList.remove('floating-cta--visible');
+            } else {
+              syncFloatingState();
+              floatingCta.classList.add('floating-cta--visible');
+            }
+          });
+        },
+        { threshold: 0 }
+      );
+
+      observer.observe(addToCartBtn);
+
+      floatingCtaBtn.addEventListener('click', function () {
+        addToCartBtn.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      });
+    }
+
+    function destroyFloatingCta() {
+      if (observer) {
+        observer.disconnect();
+        observer = null;
+      }
+      if (floatingCta) floatingCta.classList.remove('floating-cta--visible');
+    }
+
+    function handleMobileChange(e) {
+      if (e.matches) {
+        initFloatingCta();
+      } else {
+        destroyFloatingCta();
+      }
+    }
+
+    mobileQuery.addEventListener('change', handleMobileChange);
+    handleMobileChange(mobileQuery);
+
+    /* Patch updateVariant to sync floating CTA state */
+    var _origUpdateVariant = updateVariant;
+    updateVariant = function () {
+      _origUpdateVariant();
+      syncFloatingState();
+    };
+  });
+</script>
+
+{%- stylesheet -%}
+  /* ===================== Breadcrumb ===================== */
+  .breadcrumb {
+    padding: 16px 40px;
+    color: var(--dark-60, rgba(5, 5, 5, 0.6));
+    font-size: 14px;
+    font-style: normal;
+    font-weight: 400;
+    line-height: 19.6px;
+    letter-spacing: 0.4px;
+  }
+  .breadcrumb a {
+    color: var(--dark-60, rgba(5, 5, 5, 0.6));
+  }
+  /* ===================== Product Layout ===================== */
+  .product-layout {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    padding: 0 10px;
+  }
+  /* ===================== Product Gallery ===================== */
+  .product-gallery {
+    width: 100%;
+  }
+
+  /* Uniform slide sizing */
+  .product-gallery__swiper .swiper-slide {
+    aspect-ratio: 1 / 1;
+    overflow: hidden;
+  }
+
+  .product-gallery__swiper .swiper-slide .product-image,
+  .product-gallery__swiper .swiper-slide .product-video {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .product-gallery__swiper .swiper-slide .product-image img,
+  .product-gallery__swiper .swiper-slide .product-video video,
+  .product-gallery__swiper .swiper-slide .product-video iframe {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    background: transparent;
+  }
+
+  /* Play icon on video thumbs */
+  .product-thumbs__swiper .swiper-slide {
+    position: relative;
+  }
+
+  .thumb-play-icon {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 24px;
+    height: 24px;
+    background: rgba(0, 0, 0, 0.5);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+  }
+
+  .product-gallery__thumbs {
+    display: none;
+  }
+  .swiper-button-prev,
+  .swiper-button-next {
+    display: none !important;
+    --swiper-navigation-size: 32px;
+    width: 32px !important;
+    height: 32px !important;
+    margin-top: 0 !important;
+    top: 50% !important;
+    transform: translateY(-50%);
+    color: transparent !important;
+    background: none !important;
+  }
+
+  .swiper-button-prev::after,
+  .swiper-button-next::after,
+  .swiper-button-prev::before,
+  .swiper-button-next::before {
+    content: none !important;
+    display: none !important;
+  }
+
+  /* ===================== Product Info ===================== */
+  .product-info {
+    width: 100%;
+    padding: 0;
+  }
+
+  .product_collection {
+    color: rgba(19, 22, 4, 0.6);
+    font-size: 14px;
+    font-style: normal;
+    font-weight: 400;
+    line-height: 19.6px;
+    letter-spacing: 0.4px;
+    margin-bottom: 8px;
+  }
+
+  .product_title {
+    color: #131604;
+    font-family: 'Orpheus Pro';
+    font-size: 28px;
+    font-style: normal;
+    font-weight: 400;
+    line-height: 30.8px;
+    max-width: 85%;
+  }
+
+  .product_reviews {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #131604;
+    font-size: 8.4px;
+    font-style: normal;
+    font-weight: 300;
+    line-height: 10.92px;
+    margin: 14px 0 14px;
+  }
+
+  .product_price {
+    color: rgba(19, 22, 4, 0.8);
+    font-family: Inter;
+    font-size: 11px;
+    font-style: normal;
+    font-weight: 400;
+    line-height: normal;
+    letter-spacing: 1px;
+
+    span {
+      color: #131604;
+      font-size: 14px;
+      font-style: normal;
+      font-weight: 400;
+      line-height: 19.6px;
+      letter-spacing: 0.4px;
+    }
+  }
+  .finantial-info {
+    display: flex;
+    align-items: flex-end;
+    flex-wrap: wrap;
+    gap: 10px;
+    min-height: 21px;
+    font-size: 12px;
+    font-weight: 300;
+    margin-bottom: 14px;
+  }
+  .finantial-info p {
+    margin: 0;
+    line-height: 14px;
+  }
+  .finantial-info a[aria-label='affirm'] {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 16px;
+    flex-shrink: 0;
+  }
+  .finantial-info a[aria-label='affirm'] img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+  }
+  .shipping-link {
+    color: #131604;
+    font-size: 12px;
+    font-style: normal;
+    font-weight: 300;
+    line-height: 14px;
+    text-decoration-line: underline;
+    text-decoration-style: solid;
+    text-decoration-skip-ink: auto;
+    text-decoration-thickness: auto;
+    text-underline-offset: auto;
+    text-underline-position: from-font;
+  }
+
+  .product_description {
+    color: rgba(19, 22, 4, 0.8);
+    font-size: 14px;
+    font-style: normal;
+    font-weight: 400;
+    line-height: 140%;
+    letter-spacing: 0.4px;
+    margin-bottom: 20px;
+  }
+
+  .shape-content,
+  .metal-content,
+  .carant-content,
+  .ring-content {
+    display: flex;
+    gap: 12px;
+    flex-direction: column;
+    margin: 16px 0;
+  }
+
+  .metal-content .title,
+  .shape-content .title,
+  .carant-content .title,
+  .ring-content .title {
+    color: rgba(19, 22, 4, 0.8);
+    font-size: 14px;
+    display: flex;
+    gap: 6px;
+
+    strong {
+      color: #131604;
+      font-weight: 500;
+    }
+  }
+
+  .shape-content .shapes {
+    display: flex;
+    max-width: 95%;
+    width: 100%;
+    align-items: center;
+    align-content: center;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .shape-item {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition: border-color 0.2s ease;
+    text-decoration: none;
+  }
+
+  .shape-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+  }
+
+  .shape-item--active {
+    border-color: var(--brand-main, #706a38);
+  }
+
+  /* ===================== Metal Options ===================== */
+  .metal-options {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  .metal-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: 2px solid transparent !important;
+    background: transparent;
+    padding: 0;
+    cursor: pointer;
+    transition: border-color 0.2s ease;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .metal-btn img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
+  }
+
+  .metal-btn__label {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 10px;
+    font-weight: 500;
+    color: rgba(19, 22, 4, 0.7);
+    white-space: nowrap;
+    pointer-events: none;
+  }
+
+  .metal-btn:hover {
+    border-color: rgba(19, 22, 4, 0.3) !important;
+  }
+
+  .metal-btn--active {
+    border-color: var(--brand-main, #706a38) !important;
+  }
+
+  /* ===================== Carat Range Slider ===================== */
+  .carat-range {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 0;
+  }
+
+  .carat-range__min,
+  .carat-range__max {
+    font-size: 14px;
+    font-weight: 400;
+    color: #131604;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .carat-range__track {
+    position: relative;
+    flex: 1;
+    display: flex;
+    align-items: center;
+  }
+
+  .carat-range__track input[type='range'] {
+    width: 100%;
+    -webkit-appearance: none;
+    appearance: none;
+    height: 3px;
+    background: linear-gradient(
+      to right,
+      #706a38 var(--carat-progress, 0%),
+      rgba(19, 22, 4, 0.15) var(--carat-progress, 0%)
+    );
+    border-radius: 2px;
+    outline: none;
+  }
+
+  .carat-range__track input[type='range']::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: #706a38;
+    cursor: pointer;
+    border: none !important;
+  }
+
+  .carat-range__track input[type='range']::-moz-range-thumb {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: #706a38;
+    cursor: pointer;
+    border: none !important;
+  }
+
+  .carat-range__tooltip {
+    position: absolute;
+    top: -28px;
+    left: var(--carat-tooltip-left, 11px);
+    transform: translateX(-50%);
+    font-size: 12px;
+    font-weight: 400;
+    color: rgba(19, 22, 4, 0.8);
+    white-space: nowrap;
+    pointer-events: none;
+  }
+
+  /* ===================== Ring Size ===================== */
+  .ring-content__row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .ring-content__row .title {
+    flex-shrink: 0;
+  }
+
+  .ring-size {
+    flex: 1;
+  }
+
+  .ring-size select {
+    width: 100%;
+    padding: 8px 32px 8px 0;
+    border: none !important;
+    border-bottom: 1px solid var(--dark-80, rgba(19, 22, 4, 0.8)) !important;
+    border-radius: 0;
+    font-size: 14px;
+    color: #131604;
+    background-color: transparent;
+    appearance: none;
+    -webkit-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5L6 6.5L11 1.5' stroke='%23131604' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round' fill='none'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0 center;
+    background-size: 12px;
+    cursor: pointer;
+  }
+
+  /* ===================== Product Actions ===================== */
+  .product-actions {
+    display: flex;
+    gap: 12px;
+    align-items: stretch;
+    margin-bottom: 10px;
+  }
+
+  .add-to-cart {
+    display: flex;
+    height: 48px;
+    padding: 0 32px;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    flex: 1;
+    background: #706a38;
+    color: #fefdfc;
+    font-size: 14px;
+    font-style: normal;
+    font-weight: 500;
+    border: none;
+    cursor: pointer;
+  }
+
+  .add-to-cart:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .btn-favorite {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    height: 48px;
+    flex-shrink: 0;
+    border: 1px solid #131604 !important;
+    background: transparent;
+    cursor: pointer;
+    transition: border-color 0.2s ease;
+  }
+
+  .btn-favorite:hover {
+    border-color: rgba(19, 22, 4, 0.5) !important;
+  }
+
+  .btn-favorite svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  .make-inquiry {
+    display: flex;
+    height: 48px;
+    padding: 0 32px;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    color: #131604;
+    border: 1px solid #131604 !important;
+    background: transparent;
+    font-size: 14px;
+    font-style: normal;
+    font-weight: 500;
+    line-height: 16.8px;
+    cursor: pointer;
+    margin-bottom: 20px;
+  }
+
+  .product-shipping {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    margin: 20px 0 20px;
+  }
+
+  .product-shipping svg {
+    flex-shrink: 0;
+  }
+  .product-shipping-info {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+    font-size: 14px;
+    color: var(--dark-80, rgba(19, 22, 4, 0.8));
+
+    strong {
+      font-weight: 400;
+    }
+  }
+  .product-shipping-info p:last-child {
+    font-weight: 300;
+    color: rgba(19, 22, 4, 0.7);
+    line-height: 21px;
+
+    a {
+      color: rgba(19, 22, 4, 0.7);
+      text-decoration-line: underline;
+      text-decoration-style: solid;
+      text-decoration-skip-ink: auto;
+      text-decoration-thickness: auto;
+      text-underline-offset: auto;
+    }
+  }
+  .contact-details {
+    display: flex;
+    padding: 16px 24px;
+    justify-content: space-between;
+    align-items: center;
+    border: 1px solid var(--border-light, rgba(19, 22, 4, 0.1));
+    background: var(--bg-light, #f8f5ea);
+  }
+  .contact-details .contact-btn {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    transition: opacity 0.2s ease;
+  }
+
+  .contact-details .contact-btn:hover {
+    opacity: 0.75;
+  }
+
+  .product-details {
+    margin-top: 12px;
+    border-top: 1px solid rgba(19, 22, 4, 0.12);
+  }
+
+  .product-details__item {
+    border-bottom: 1px solid rgba(19, 22, 4, 0.12);
+  }
+
+  .product-details__summary {
+    list-style: none;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    width: 100%;
+    padding: 16px 0;
+    cursor: pointer;
+    color: #131604;
+    font-weight: 500;
+    line-height: 1.4;
+  }
+  .product-details__summary span {
+    font-family: 'Orpheus Pro';
+    font-size: 20px;
+  }
+
+  .product-details__summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .product-details__icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.25s ease;
+    flex-shrink: 0;
+  }
+
+  .product-details__item[open] .product-details__icon {
+    transform: rotate(180deg);
+  }
+
+  .product-details__content {
+    padding: 0 0 16px;
+    color: rgba(19, 22, 4, 0.8);
+    font-size: 14px;
+    line-height: 19.6px;
+    letter-spacing: 0.4px;
+  }
+
+  .product-details__content p {
+    margin: 0;
+  }
+
+  .product-details__content p + p {
+    margin-top: 12px;
+  }
+
+  .product-details__content p:empty {
+    display: none;
+  }
+
+  .product-details__content :last-child {
+    margin-bottom: 0;
+  }
+  .product-details__content h5 {
+    margin-top: 12px;
+    margin-bottom: 12px;
+    font-size: 16px;
+  }
+
+  .product-benefits {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 20px;
+    font-size: 14px;
+    font-weight: 500;
+  }
+  .product-benefits .benefit {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+  }
+
+  /* ===================== Mobile (max 767px) ===================== */
+  @media screen and (max-width: 767px) {
+    .breadcrumb {
+      padding: 12px 10px;
+    }
+    .product-layout {
+      padding: 0;
+      gap: 16px;
+    }
+    .product-info {
+      padding: 0 10px;
+    }
+    .product-gallery__swiper {
+      width: 100%;
+      overflow: hidden;
+    }
+    .product-gallery__swiper .swiper-slide {
+      aspect-ratio: 4 / 5;
+    }
+
+    /* Swiper nav arrows — show only on mobile */
+    .swiper-button-prev,
+    .swiper-button-next {
+      display: flex !important;
+      align-items: center;
+      justify-content: center;
+    }
+    .swiper-button-prev {
+      left: 8px !important;
+      right: auto !important;
+    }
+    .swiper-button-next {
+      right: 8px !important;
+      left: auto !important;
+    }
+    .product-gallery__thumbs {
+      display: block;
+      padding: 8px 10px;
+    }
+    .product-thumbs__swiper .swiper-slide {
+      width: 64px !important;
+      height: 64px;
+      overflow: hidden;
+      border: 1px solid transparent;
+      transition: border-color 0.3s;
+    }
+    .product-thumbs__swiper .swiper-slide-thumb-active {
+      border: 1px solid var(--brand-main, #706a38);
+    }
+    .product-thumbs__swiper .swiper-slide img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+  }
+
+  /* ===================== Tablet (768px - 1279px) ===================== */
+  @media screen and (min-width: 768px) and (max-width: 1279px) {
+    .product-layout {
+      padding: 0 40px;
+    }
+    .product-gallery__swiper {
+      overflow: visible;
+    }
+    .product-gallery__swiper .swiper-wrapper {
+      display: grid !important;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      transform: none !important;
+    }
+    .product-gallery__swiper .swiper-wrapper .swiper-slide {
+      width: 100% !important;
+    }
+  }
+
+  /* ===================== Desktop (min 1280px) ===================== */
+  @media screen and (min-width: 1280px) {
+    .product-layout {
+      display: grid;
+      grid-template-columns: 1fr 440px;
+      gap: 40px;
+      align-items: start;
+      padding: 0 40px;
+    }
+    .product-gallery__swiper {
+      overflow: visible;
+    }
+    .product-gallery__swiper .swiper-wrapper {
+      display: grid !important;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      transform: none !important;
+    }
+    .product-gallery__swiper .swiper-wrapper .swiper-slide {
+      width: 100% !important;
+    }
+    .product-info {
+      position: sticky;
+      top: 130px;
+    }
+  }
+
+  /* ===================== Floating CTA (Mobile) ===================== */
+  .floating-cta {
+    display: none;
+  }
+
+  @media (max-width: 767px) {
+    .floating-cta {
+      display: block;
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      z-index: 999;
+      padding: 12px 16px;
+      padding-bottom: calc(12px + env(safe-area-inset-bottom));
+      transform: translateY(100%);
+      opacity: 0;
+      transition: transform 0.3s ease, opacity 0.3s ease;
+      pointer-events: none;
+    }
+
+    .floating-cta--visible {
+      transform: translateY(0);
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .floating-cta__btn {
+      display: flex;
+      width: 100%;
+      height: 48px;
+      justify-content: center;
+      align-items: center;
+      background: #706a38;
+      color: #fefdfc;
+      font-size: 14px;
+      font-weight: 500;
+      border: none;
+      cursor: pointer;
+    }
+
+    .floating-cta__btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+  }
+{%- endstylesheet -%}
 
 {% schema %}
 {
   "name": "t:general.product",
-  "settings": [],
+  "settings": [
+    {
+      "type": "product",
+      "id": "fallback_product",
+      "label": "Fallback product"
+    },
+    {
+      "type": "richtext",
+      "id": "shipping_info",
+      "label": "Shipping & delivery info",
+      "default": "<p><strong>Estimated Delivery: May 14, 2026</strong></p><p>Your ring is crafted to order and delivered via fully insured express shipping. Need it sooner? <em>Priority crafting options are available.</em></p>"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "shape",
+      "name": "Shape",
+      "settings": [
+        {
+          "type": "image_picker",
+          "id": "image",
+          "label": "Shape image"
+        },
+        {
+          "type": "text",
+          "id": "name",
+          "label": "Shape name",
+          "default": "Emerald"
+        },
+        {
+          "type": "url",
+          "id": "product_link",
+          "label": "Product link"
+        },
+        {
+          "type": "checkbox",
+          "id": "is_active",
+          "label": "Active",
+          "default": false
+        }
+      ]
+    },
+    {
+      "type": "metal_option",
+      "name": "Metal option",
+      "settings": [
+        {
+          "type": "image_picker",
+          "id": "image",
+          "label": "Metal swatch image"
+        },
+        {
+          "type": "text",
+          "id": "metal_value",
+          "label": "Metal value",
+          "info": "Must match the variant option value exactly (e.g. '14k Yellow Gold')"
+        }
+      ]
+    },
+    {
+      "type": "product_detail",
+      "name": "Product detail",
+      "settings": [
+        {
+          "type": "text",
+          "id": "title",
+          "label": "Title",
+          "default": "Details"
+        },
+        {
+          "type": "richtext",
+          "id": "content",
+          "label": "Content",
+          "default": "<p>Write detail content here.</p>"
+        }
+      ]
+    }
+  ],
   "disabled_on": {
     "groups": ["header", "footer"]
   }
