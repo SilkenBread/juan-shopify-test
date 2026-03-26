@@ -24,10 +24,23 @@
     {% render 'meta-tags' %}
 
     {{ content_for_header }}
+
+    <style>
+      #site-header-group {
+        position: sticky;
+        top: 0;
+        z-index: 1000;
+      }
+    </style>
+    {% # Swiper JS %}
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@12/swiper-bundle.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/swiper@12/swiper-bundle.min.js" defer></script>
   </head>
 
   <body>
-    {% sections 'header-group' %}
+    <div id="site-header-group">
+      {% sections 'header-group' %}
+    </div>
 
     {{ content_for_layout }}
 

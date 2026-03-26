@@ -9,6 +9,171 @@
  */
 {
   "sections": {
+    "product": {
+      "type": "product",
+      "blocks": {
+        "metal_option_hc7zC9": {
+          "type": "metal_option",
+          "settings": {
+            "image": "shopify://shop_images/Material_Silver.png",
+            "metal_value": "14k White Gold"
+          }
+        },
+        "metal_option_aWja34": {
+          "type": "metal_option",
+          "settings": {
+            "image": "shopify://shop_images/Material_Gold.png",
+            "metal_value": "14k Yellow Gold"
+          }
+        },
+        "metal_option_t9PhAX": {
+          "type": "metal_option",
+          "settings": {
+            "image": "shopify://shop_images/Material_Rose_Gold.png",
+            "metal_value": "14k Rose Gold"
+          }
+        },
+        "metal_option_GzM3z9": {
+          "type": "metal_option",
+          "settings": {
+            "image": "shopify://shop_images/Material_Silver.png",
+            "metal_value": "18k White Gold"
+          }
+        },
+        "metal_option_mqLfLU": {
+          "type": "metal_option",
+          "settings": {
+            "image": "shopify://shop_images/Material_Gold.png",
+            "metal_value": "18k Yellow Gold"
+          }
+        },
+        "metal_option_hAmgLA": {
+          "type": "metal_option",
+          "settings": {
+            "metal_value": "18k Rose Gold"
+          }
+        },
+        "metal_option_UF9ktV": {
+          "type": "metal_option",
+          "settings": {
+            "image": "shopify://shop_images/Material_Platinum.png",
+            "metal_value": "PT Platinum"
+          }
+        },
+        "shape_gxRekK": {
+          "type": "shape",
+          "settings": {
+            "image": "shopify://shop_images/Diamond_Icon_11.png",
+            "name": "Emerald",
+            "product_link": "",
+            "is_active": false
+          }
+        },
+        "shape_RpjrUJ": {
+          "type": "shape",
+          "settings": {
+            "image": "shopify://shop_images/Diamond_Icon_1.png",
+            "name": "Emerald",
+            "product_link": "",
+            "is_active": false
+          }
+        },
+        "shape_dYzCbR": {
+          "type": "shape",
+          "settings": {
+            "image": "shopify://shop_images/Diamond_Icon_2.png",
+            "name": "Emerald",
+            "product_link": "",
+            "is_active": false
+          }
+        },
+        "shape_jHMHaz": {
+          "type": "shape",
+          "settings": {
+            "image": "shopify://shop_images/Diamond_Icon_3.png",
+            "name": "Gout",
+            "product_link": "",
+            "is_active": false
+          }
+        },
+        "shape_wRgy47": {
+          "type": "shape",
+          "settings": {
+            "image": "shopify://shop_images/Diamond_Icon_4.png",
+            "name": "Emerald",
+            "product_link": "",
+            "is_active": false
+          }
+        },
+        "shape_6HzLmH": {
+          "type": "shape",
+          "settings": {
+            "image": "shopify://shop_images/Diamond_Icon_5.png",
+            "name": "Emerald",
+            "product_link": "",
+            "is_active": true
+          }
+        },
+        "shape_hM6AW7": {
+          "type": "shape",
+          "settings": {
+            "image": "shopify://shop_images/Diamond_Icon_6.png",
+            "name": "Emerald",
+            "product_link": "",
+            "is_active": false
+          }
+        },
+        "shape_iV7jpc": {
+          "type": "shape",
+          "settings": {
+            "image": "shopify://shop_images/Diamond_Icon_7.png",
+            "name": "Square",
+            "product_link": "",
+            "is_active": false
+          }
+        },
+        "shape_h4PHJE": {
+          "type": "shape",
+          "settings": {
+            "image": "shopify://shop_images/Diamond_Icon_8.png",
+            "name": "Rectangle",
+            "product_link": "",
+            "is_active": false
+          }
+        },
+        "shape_6YKKpc": {
+          "type": "shape",
+          "settings": {
+            "image": "shopify://shop_images/Diamond_Icon_9.png",
+            "name": "Heart",
+            "product_link": "",
+            "is_active": false
+          }
+        }
+      },
+      "block_order": [
+        "metal_option_hc7zC9",
+        "metal_option_aWja34",
+        "metal_option_t9PhAX",
+        "metal_option_GzM3z9",
+        "metal_option_mqLfLU",
+        "metal_option_hAmgLA",
+        "metal_option_UF9ktV",
+        "shape_gxRekK",
+        "shape_RpjrUJ",
+        "shape_dYzCbR",
+        "shape_jHMHaz",
+        "shape_wRgy47",
+        "shape_6HzLmH",
+        "shape_hM6AW7",
+        "shape_iV7jpc",
+        "shape_h4PHJE",
+        "shape_6YKKpc"
+      ],
+      "settings": {
+        "fallback_product": "emerald-cut-solitare-engagement-ring"
+      }
+    },
     "trust-badges": {
       "type": "trust-badges",
       "blocks": {
@@ -46,6 +211,7 @@
     }
   },
   "order": [
+    "product",
     "trust-badges"
   ]
 }

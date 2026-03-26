@@ -1,50 +1,1089 @@
-{% comment %}
-  This section is used in the product template to render product page with
-  media, content, and add-to-cart form.
+{%- liquid
+  assign displayed_product = product
 
-  https://shopify.dev/docs/storefronts/themes/architecture/templates/product
-{% endcomment %}
+  if displayed_product == blank and section.settings.fallback_product != blank
+    assign displayed_product = section.settings.fallback_product
+  endif
 
-<div class="product-images">
-  {% for image in product.images %}
-    {% render 'image', class: 'product-image', image: image %}
-  {% endfor %}
+  assign review_count = displayed_product.metafields.custom.review_count.value
+  assign review_rating = displayed_product.metafields.custom.average_rating.value
+
+  assign metal_values = ''
+  assign ring_size_values = ''
+  for variant in displayed_product.variants
+    if metal_values == ''
+      assign metal_values = variant.option1
+    else
+      assign metal_values = metal_values | append: ',' | append: variant.option1
+    endif
+    if ring_size_values == ''
+      assign ring_size_values = variant.option2
+    else
+      assign ring_size_values = ring_size_values | append: ',' | append: variant.option2
+    endif
+  endfor
+  assign metal_values = metal_values | split: ',' | uniq
+  assign ring_size_values = ring_size_values | split: ',' | uniq
+
+  assign active_shape_name = ''
+  for block in section.blocks
+    if block.type == 'shape' and block.settings.is_active
+      assign active_shape_name = block.settings.name
+    endif
+  endfor
+-%}
+
+<div class="breadcrumb full-width">
+  <a href="{{ routes.root_url }}">Home</a> /
+  <a href="{{ displayed_product.collections.first.url }}">{{ displayed_product.collections.first.title }}</a> /
+  {{ displayed_product.title }}
 </div>
 
-<div class="product-info">
-  <h1>{{ product.title }}</h1>
-  <p>{{ product.price | money }}</p>
-  <p>{{ product.description }}</p>
-</div>
+{% if displayed_product != blank %}
+  <div class="product-layout full-width">
+    <div class="product-gallery">
+      <!-- Main gallery: Swiper on mobile, CSS grid on desktop -->
+      <div class="swiper product-gallery__swiper">
+        <div class="swiper-wrapper">
+          {% for image in displayed_product.images %}
+            <div class="swiper-slide">
+              {% render 'image', class: 'product-image', image: image %}
+            </div>
+          {% endfor %}
+        </div>
+        <div class="swiper-button-prev">
+          <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle opacity="0.06" cx="16" cy="16" r="16" transform="matrix(-1 0 0 1 32 0)" fill="#131604"/>
+            <path d="M18.8 22.4L12.4 16L18.8 9.60001" stroke="#131604" stroke-opacity="0.8" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <div class="swiper-button-next">
+          <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle opacity="0.06" cx="16" cy="16" r="16" fill="#131604"/>
+            <path d="M13.2 22.4L19.6 16L13.2 9.60001" stroke="#131604" stroke-opacity="0.8" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+      </div>
 
-<div class="product-form">
-  {% form 'product', product %}
-    {% assign current_variant = product.selected_or_first_available_variant %}
+      <!-- Thumbnails (mobile only) -->
+      <div class="product-gallery__thumbs">
+        <div class="swiper product-thumbs__swiper">
+          <div class="swiper-wrapper">
+            {% for image in displayed_product.images %}
+              <div class="swiper-slide">
+                {% render 'image', class: 'product-thumb', image: image, width: 80, height: 80, crop: 'center' %}
+              </div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+    </div>
 
-    <select name="id">
-      {% for variant in product.variants %}
-        <option
-          value="{{ variant.id }}"
-          {% if variant == current_variant %}
-            selected="selected"
-          {% endif %}
-        >
-          {{ variant.title }} - {{ variant.price | money }}
-        </option>
-      {% endfor %}
-    </select>
+    <aside class="product-info">
+      {%- if displayed_product.collections != blank -%}
+        <p class="product_collection">{{ displayed_product.collections.first.title | upcase }}</p>
+      {%- endif -%}
+      <h1 class="product_title">{{ displayed_product.title }}</h1>
+      <div class="product_reviews">
+        {{ 'stars-reviews.svg' | inline_asset_content }}
+        <p>{{ review_count }} reviews</p>
+      </div>
+      <p class="product_price">
+        <span class="price">{{ displayed_product.price | money_with_currency }}</span> (SETTING ONLY)
+      </p>
 
-    <input type="text" name="quantity" min="1" value="1">
+      <div class="finantial-info">
+        <p>Starting at $28/mo with</p>
+        <a href="{{ routes.root_url }}" aria-label="affirm">
+          <img
+            src="{{ 'icon-affirm.svg' | asset_url }}"
+            alt="{{ shop.name }}"
+            width="40"
+            height="16"
+            loading="eager"
+          >
+        </a>
+        <a href="/pages/shipping" class="shipping-link">Prequalify now</a>
+      </div>
+      <p class="product_description">{{ displayed_product.description | strip_html }}</p>
 
-    <input type="submit" value="Add to cart">
-    {{ form | payment_button }}
-  {% endform %}
-</div>
+      {%- render 'divider' -%}
+
+      <div class="product-form">
+        {% form 'product', displayed_product %}
+          {% assign current_variant = displayed_product.selected_or_first_available_variant %}
+
+          <div class="shape-content">
+            <div class="title">
+              <strong>Shape:</strong>
+              {%- for block in section.blocks -%}
+                {%- if block.type == 'shape' and block.settings.is_active -%}
+                  <span>{{ block.settings.name }}</span>
+                {%- endif -%}
+              {%- endfor -%}
+              {%- render 'icon-info' -%}
+            </div>
+            <div class="shapes">
+              {%- for block in section.blocks -%}
+                {%- if block.type == 'shape' -%}
+                  <a
+                    href="{{ block.settings.product_link }}"
+                    class="shape-item{% if block.settings.is_active %} shape-item--active{% endif %}"
+                    {{ block.shopify_attributes }}
+                  >
+                    {%- if block.settings.image != blank -%}
+                      <img
+                        src="{{ block.settings.image | image_url: width: 100 }}"
+                        alt="{{ block.settings.name | escape }}"
+                        width="50"
+                        height="50"
+                        loading="lazy"
+                      >
+                    {%- endif -%}
+                  </a>
+                {%- endif -%}
+              {%- endfor -%}
+            </div>
+            <input type="hidden" name="properties[Shape]" value="{{ active_shape_name }}">
+          </div>
+          {%- render 'divider' -%}
+
+          <div class="metal-content">
+            <div class="title">
+              <strong>Metal:</strong>
+              <span data-selected-metal>{{ current_variant.option1 }}</span>
+              {%- render 'icon-info' -%}
+            </div>
+            <div class="metal-options">
+              {%- for block in section.blocks -%}
+                {%- if block.type == 'metal_option' -%}
+                  {%- assign metal = block.settings.metal_value -%}
+                  {%- assign metal_abbr = metal | split: ' ' | first | upcase -%}
+                  <button
+                    type="button"
+                    class="metal-btn{% if metal == current_variant.option1 %} metal-btn--active{% endif %}"
+                    data-metal-value="{{ metal }}"
+                    aria-label="{{ metal }}"
+                    aria-pressed="{% if metal == current_variant.option1 %}true{% else %}false{% endif %}"
+                    {{ block.shopify_attributes }}
+                  >
+                    {%- if block.settings.image != blank -%}
+                      <img
+                        src="{{ block.settings.image | image_url: width: 120 }}"
+                        alt="{{ metal | escape }}"
+                        width="60"
+                        height="60"
+                        loading="lazy"
+                      >
+                    {%- endif -%}
+                    <span class="metal-btn__label">{{ metal_abbr }}</span>
+                  </button>
+                {%- endif -%}
+              {%- endfor -%}
+            </div>
+          </div>
+
+          {%- render 'divider' -%}
+
+          <div class="carant-content">
+            <div class="title">
+              <strong>Carat Weight:</strong>
+              <span data-carat-display>1</span> ct
+              {%- render 'icon-info' -%}
+            </div>
+            <div class="carat-range">
+              <span class="carat-range__min">1 ct</span>
+              <div class="carat-range__track">
+                <input
+                  type="range"
+                  name="properties[Carat Weight]"
+                  min="1"
+                  max="5"
+                  step="0.5"
+                  value="4"
+                  data-carat-slider
+                >
+                <output class="carat-range__tooltip" data-carat-tooltip>1 carat</output>
+              </div>
+              <span class="carat-range__max">5 ct</span>
+            </div>
+          </div>
+
+          {%- render 'divider' -%}
+
+          <div class="ring-content">
+            <div class="ring-content__row">
+              <div class="title">
+                <strong>Ring Size:</strong>
+                <span data-selected-ring-size>{{ current_variant.option2 }}</span>
+                {%- render 'icon-info' -%}
+              </div>
+              <div class="ring-size">
+                <select data-ring-size-select>
+                  {%- for size in ring_size_values -%}
+                    <option
+                      value="{{ size }}"
+                      {% if size == current_variant.option2 %}
+                        selected
+                      {% endif %}
+                    >
+                      {{ size }}
+                    </option>
+                  {%- endfor -%}
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <input type="hidden" name="id" value="{{ current_variant.id }}" data-variant-id>
+          <input type="hidden" name="quantity" min="1" value="1">
+
+          <div class="product-actions">
+            <input class="add-to-cart" type="submit" value="ADD TO BAG">
+            <button class="btn-favorite" type="button" aria-label="Add to favorites">
+              {{ 'icon-favorites.svg' | inline_asset_content }}
+            </button>
+          </div>
+          <button class="make-inquiry" type="button">MAKE AN INQUIRY</button>
+        {% endform %}
+
+        {%- render 'divider' -%}
+        <div class="product-shipping">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+            <path d="M24 11.181L21.3708 6.39588H18.7222V4.52209H2.17045V7.34837H0V8.7537H2.17045V10.0477H0V11.4531H2.17045V12.7199H0V14.1252H2.17045V15.5774H1.03058V16.9827H5.07317C5.19243 18.3784 6.3658 19.4779 7.79179 19.4779C9.21778 19.4779 10.3911 18.3784 10.5104 16.9827H15.3009C15.4201 18.3784 16.5935 19.4779 18.0195 19.4779C19.4455 19.4779 20.6189 18.3784 20.7381 16.9827H24V11.181ZM22.1095 10.6587H18.7222V7.80121H20.5395L22.1095 10.6587ZM7.79179 18.0725C7.06172 18.0725 6.46778 17.4786 6.46778 16.7485C6.46778 16.0184 7.06172 15.4245 7.79179 15.4245C8.52186 15.4245 9.11581 16.0184 9.11581 16.7485C9.11581 17.4786 8.52186 18.0725 7.79179 18.0725ZM15.5547 15.5774H10.2567C9.81754 14.6569 8.87784 14.0191 7.79184 14.0191C6.70584 14.0191 5.76614 14.6569 5.32702 15.5774H3.57578V14.1252H4.91868V12.7199H3.57578V11.4531H8.79113V10.0477H3.57578V8.7537H5.19974V7.34837H3.57578V5.92743H17.3168V14.1113C16.5383 14.3189 15.8956 14.8628 15.5547 15.5774ZM18.0195 18.0725C17.2895 18.0725 16.6955 17.4786 16.6955 16.7485C16.6955 16.0184 17.2895 15.4245 18.0195 15.4245C18.7496 15.4245 19.3436 16.0184 19.3436 16.7485C19.3436 17.4786 18.7496 18.0725 18.0195 18.0725ZM20.4844 15.5774C20.1434 14.8628 19.5008 14.3189 18.7222 14.1113V12.0641H19.9558V13.4226H21.3611V12.0641H22.5947V15.5774H20.4844Z" fill="#050505"/>
+            <rect y="7.34375" width="5.21289" height="1.41724" fill="#706A38"/>
+            <rect y="12.7018" width="4.94141" height="1.427" fill="#706A38"/>
+            <rect y="10.0497" width="8.80176" height="1.40527" fill="#706A38"/>
+          </svg>
+          <div class="product-shipping-info">
+            {{ section.settings.shipping_info }}
+          </div>
+        </div>
+      </div>
+    </aside>
+  </div>
+{% endif %}
+
+<script type="application/json" data-product-variants>
+  {{ displayed_product.variants | json }}
+</script>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    /* ===================== Swiper (existing) ===================== */
+    var mobileQuery = window.matchMedia('(max-width: 767px)');
+    var mainSwiper = null;
+    var thumbsSwiper = null;
+
+    function initSwipers() {
+      if (typeof Swiper === 'undefined') return;
+
+      thumbsSwiper = new Swiper('.product-thumbs__swiper', {
+        slidesPerView: 'auto',
+        spaceBetween: 8,
+        watchSlidesProgress: true,
+      });
+
+      mainSwiper = new Swiper('.product-gallery__swiper', {
+        slidesPerView: 1,
+        spaceBetween: 0,
+        navigation: {
+          nextEl: '.swiper-button-next',
+          prevEl: '.swiper-button-prev',
+        },
+        thumbs: {
+          swiper: thumbsSwiper,
+        },
+      });
+    }
+
+    function destroySwipers() {
+      if (mainSwiper) {
+        mainSwiper.destroy(true, true);
+        mainSwiper = null;
+      }
+      if (thumbsSwiper) {
+        thumbsSwiper.destroy(true, true);
+        thumbsSwiper = null;
+      }
+    }
+
+    function handleViewportChange(e) {
+      if (e.matches) {
+        initSwipers();
+      } else {
+        destroySwipers();
+      }
+    }
+
+    mobileQuery.addEventListener('change', handleViewportChange);
+
+    if (mobileQuery.matches) {
+      initSwipers();
+    }
+
+    /* ===================== Variant Selection ===================== */
+    var variantDataEl = document.querySelector('[data-product-variants]');
+    if (!variantDataEl) return;
+    var variants = JSON.parse(variantDataEl.textContent);
+
+    var variantIdInput = document.querySelector('[data-variant-id]');
+    var selectedMetalSpan = document.querySelector('[data-selected-metal]');
+    var selectedRingSizeSpan = document.querySelector('[data-selected-ring-size]');
+    var priceDisplay = document.querySelector('.product_price .price');
+    var metalButtons = document.querySelectorAll('.metal-btn');
+    var ringSizeSelect = document.querySelector('[data-ring-size-select]');
+    var caratSlider = document.querySelector('[data-carat-slider]');
+    var caratDisplay = document.querySelector('[data-carat-display]');
+    var addToCartBtn = document.querySelector('.add-to-cart');
+
+    var selectedMetal = selectedMetalSpan ? selectedMetalSpan.textContent.trim() : '';
+    var selectedRingSize = ringSizeSelect ? ringSizeSelect.value : '';
+
+    function findVariant(metal, ringSize) {
+      for (var i = 0; i < variants.length; i++) {
+        if (variants[i].option1 === metal && variants[i].option2 === ringSize) {
+          return variants[i];
+        }
+      }
+      return null;
+    }
+
+    function formatMoney(cents) {
+      return '$' + (cents / 100).toFixed(2) + ' USD';
+    }
+
+    function updateVariant() {
+      var variant = findVariant(selectedMetal, selectedRingSize);
+      if (variant) {
+        variantIdInput.value = variant.id;
+
+        if (priceDisplay) {
+          priceDisplay.textContent = formatMoney(variant.price);
+        }
+
+        var url = new URL(window.location);
+        url.searchParams.set('variant', variant.id);
+        window.history.replaceState({}, '', url);
+
+        if (addToCartBtn) {
+          if (variant.available) {
+            addToCartBtn.disabled = false;
+            addToCartBtn.value = 'ADD TO BAG';
+          } else {
+            addToCartBtn.disabled = true;
+            addToCartBtn.value = 'SOLD OUT';
+          }
+        }
+      } else if (addToCartBtn) {
+        addToCartBtn.disabled = true;
+        addToCartBtn.value = 'UNAVAILABLE';
+      }
+    }
+
+    metalButtons.forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        metalButtons.forEach(function (b) {
+          b.classList.remove('metal-btn--active');
+          b.setAttribute('aria-pressed', 'false');
+        });
+        btn.classList.add('metal-btn--active');
+        btn.setAttribute('aria-pressed', 'true');
+
+        selectedMetal = btn.getAttribute('data-metal-value');
+        if (selectedMetalSpan) selectedMetalSpan.textContent = selectedMetal;
+
+        updateVariant();
+      });
+    });
+
+    if (ringSizeSelect) {
+      ringSizeSelect.addEventListener('change', function () {
+        selectedRingSize = this.value;
+        if (selectedRingSizeSpan) selectedRingSizeSpan.textContent = selectedRingSize;
+        updateVariant();
+      });
+    }
+
+    var caratTooltip = document.querySelector('[data-carat-tooltip]');
+
+    function updateCaratSlider() {
+      if (!caratSlider) return;
+      var min = parseFloat(caratSlider.min);
+      var max = parseFloat(caratSlider.max);
+      var val = parseFloat(caratSlider.value);
+      var ratio = (val - min) / (max - min);
+      var progress = ratio * 100;
+      var track = caratSlider.closest('.carat-range__track');
+      if (track) {
+        track.style.setProperty('--carat-progress', progress + '%');
+        // Compensate for thumb width (22px) so tooltip aligns with thumb center
+        var thumbHalf = 11;
+        var trackWidth = caratSlider.offsetWidth;
+        var thumbPos = thumbHalf + ratio * (trackWidth - 2 * thumbHalf);
+        track.style.setProperty('--carat-tooltip-left', thumbPos + 'px');
+      }
+      if (caratDisplay) caratDisplay.textContent = val;
+      if (caratTooltip) caratTooltip.textContent = val + ' carat';
+    }
+
+    if (caratSlider) {
+      updateCaratSlider();
+      caratSlider.addEventListener('input', updateCaratSlider);
+    }
+  });
+</script>
+
+{%- stylesheet -%}
+  /* ===================== Breadcrumb ===================== */
+  .breadcrumb {
+    padding: 16px 40px;
+    color: var(--dark-60, rgba(5, 5, 5, 0.6));
+    font-size: 14px;
+    font-style: normal;
+    font-weight: 400;
+    line-height: 19.6px;
+    letter-spacing: 0.4px;
+  }
+  .breadcrumb a {
+    color: var(--dark-60, rgba(5, 5, 5, 0.6));
+  }
+  /* ===================== Product Layout ===================== */
+  .product-layout {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    padding: 0 10px;
+  }
+  /* ===================== Product Gallery ===================== */
+  .product-gallery {
+    width: 100%;
+  }
+  .product-gallery__thumbs {
+    display: none;
+  }
+  .swiper-button-prev,
+  .swiper-button-next {
+    display: none !important;
+    --swiper-navigation-size: 32px;
+    width: 32px !important;
+    height: 32px !important;
+    margin-top: 0 !important;
+    top: 50% !important;
+    transform: translateY(-50%);
+    color: transparent !important;
+    background: none !important;
+  }
+
+  .swiper-button-prev::after,
+  .swiper-button-next::after,
+  .swiper-button-prev::before,
+  .swiper-button-next::before {
+    content: none !important;
+    display: none !important;
+  }
+
+  /* ===================== Product Info ===================== */
+  .product-info {
+    width: 100%;
+    padding: 0;
+  }
+
+  .product_collection {
+    color: rgba(19, 22, 4, 0.6);
+    font-size: 14px;
+    font-style: normal;
+    font-weight: 400;
+    line-height: 19.6px;
+    letter-spacing: 0.4px;
+    margin-bottom: 8px;
+  }
+
+  .product_title {
+    color: #131604;
+    font-family: 'Orpheus Pro';
+    font-size: 28px;
+    font-style: normal;
+    font-weight: 400;
+    line-height: 30.8px;
+    max-width: 85%;
+  }
+
+  .product_reviews {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #131604;
+    font-size: 8.4px;
+    font-style: normal;
+    font-weight: 300;
+    line-height: 10.92px;
+    margin: 14px 0 14px;
+  }
+
+  .product_price {
+    color: rgba(19, 22, 4, 0.8);
+    font-family: Inter;
+    font-size: 11px;
+    font-style: normal;
+    font-weight: 400;
+    line-height: normal;
+    letter-spacing: 1px;
+
+    span {
+      color: #131604;
+      font-size: 14px;
+      font-style: normal;
+      font-weight: 400;
+      line-height: 19.6px;
+      letter-spacing: 0.4px;
+    }
+  }
+  .finantial-info {
+    display: flex;
+    align-items: flex-end;
+    flex-wrap: wrap;
+    gap: 10px;
+    min-height: 21px;
+    font-size: 12px;
+    font-weight: 300;
+    margin-bottom: 14px;
+  }
+  .finantial-info p {
+    margin: 0;
+    line-height: 14px;
+  }
+  .finantial-info a[aria-label='affirm'] {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 16px;
+    flex-shrink: 0;
+  }
+  .finantial-info a[aria-label='affirm'] img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+  }
+  .shipping-link {
+    color: #131604;
+    font-size: 12px;
+    font-style: normal;
+    font-weight: 300;
+    line-height: 14px;
+    text-decoration-line: underline;
+    text-decoration-style: solid;
+    text-decoration-skip-ink: auto;
+    text-decoration-thickness: auto;
+    text-underline-offset: auto;
+    text-underline-position: from-font;
+  }
+
+  .product_description {
+    color: rgba(19, 22, 4, 0.8);
+    font-size: 14px;
+    font-style: normal;
+    font-weight: 400;
+    line-height: 140%;
+    letter-spacing: 0.4px;
+    margin-bottom: 20px;
+  }
+
+  .shape-content,
+  .metal-content,
+  .carant-content,
+  .ring-content {
+    display: flex;
+    gap: 12px;
+    flex-direction: column;
+    margin: 16px 0;
+  }
+
+  .metal-content .title,
+  .shape-content .title,
+  .carant-content .title,
+  .ring-content .title {
+    color: rgba(19, 22, 4, 0.8);
+    font-size: 14px;
+    display: flex;
+    gap: 6px;
+
+    strong {
+      color: #131604;
+      font-weight: 500;
+    }
+  }
+
+  .shape-content .shapes {
+    display: flex;
+    max-width: 95%;
+    width: 100%;
+    align-items: center;
+    align-content: center;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .shape-item {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition: border-color 0.2s ease;
+    text-decoration: none;
+  }
+
+  .shape-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+  }
+
+  .shape-item--active {
+    border-color: var(--brand-main, #706a38);
+  }
+
+  /* ===================== Metal Options ===================== */
+  .metal-options {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  .metal-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: 2px solid transparent !important;
+    background: transparent;
+    padding: 0;
+    cursor: pointer;
+    transition: border-color 0.2s ease;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .metal-btn img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
+  }
+
+  .metal-btn__label {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 10px;
+    font-weight: 500;
+    color: rgba(19, 22, 4, 0.7);
+    white-space: nowrap;
+    pointer-events: none;
+  }
+
+  .metal-btn:hover {
+    border-color: rgba(19, 22, 4, 0.3) !important;
+  }
+
+  .metal-btn--active {
+    border-color: var(--brand-main, #706a38) !important;
+  }
+
+  /* ===================== Carat Range Slider ===================== */
+  .carat-range {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 0;
+  }
+
+  .carat-range__min,
+  .carat-range__max {
+    font-size: 14px;
+    font-weight: 400;
+    color: #131604;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .carat-range__track {
+    position: relative;
+    flex: 1;
+    display: flex;
+    align-items: center;
+  }
+
+  .carat-range__track input[type='range'] {
+    width: 100%;
+    -webkit-appearance: none;
+    appearance: none;
+    height: 3px;
+    background: linear-gradient(
+      to right,
+      #706a38 var(--carat-progress, 0%),
+      rgba(19, 22, 4, 0.15) var(--carat-progress, 0%)
+    );
+    border-radius: 2px;
+    outline: none;
+  }
+
+  .carat-range__track input[type='range']::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: #706a38;
+    cursor: pointer;
+    border: none !important;
+  }
+
+  .carat-range__track input[type='range']::-moz-range-thumb {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: #706a38;
+    cursor: pointer;
+    border: none !important;
+  }
+
+  .carat-range__tooltip {
+    position: absolute;
+    top: -28px;
+    left: var(--carat-tooltip-left, 11px);
+    transform: translateX(-50%);
+    font-size: 12px;
+    font-weight: 400;
+    color: rgba(19, 22, 4, 0.8);
+    white-space: nowrap;
+    pointer-events: none;
+  }
+
+  /* ===================== Ring Size ===================== */
+  .ring-content__row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .ring-content__row .title {
+    flex-shrink: 0;
+  }
+
+  .ring-size {
+    flex: 1;
+  }
+
+  .ring-size select {
+    width: 100%;
+    padding: 8px 32px 8px 0;
+    border: none !important;
+    border-bottom: 1px solid var(--dark-80, rgba(19, 22, 4, 0.8)) !important;
+    border-radius: 0;
+    font-size: 14px;
+    color: #131604;
+    background-color: transparent;
+    appearance: none;
+    -webkit-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5L6 6.5L11 1.5' stroke='%23131604' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round' fill='none'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0 center;
+    background-size: 12px;
+    cursor: pointer;
+  }
+
+  /* ===================== Product Actions ===================== */
+  .product-actions {
+    display: flex;
+    gap: 12px;
+    align-items: stretch;
+    margin-bottom: 10px;
+  }
+
+  .add-to-cart {
+    display: flex;
+    height: 48px;
+    padding: 0 32px;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    flex: 1;
+    background: #706a38;
+    color: #fefdfc;
+    font-size: 14px;
+    font-style: normal;
+    font-weight: 500;
+    border: none;
+    cursor: pointer;
+  }
+
+  .add-to-cart:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .btn-favorite {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    height: 48px;
+    flex-shrink: 0;
+    border: 1px solid #131604 !important;
+    background: transparent;
+    cursor: pointer;
+    transition: border-color 0.2s ease;
+  }
+
+  .btn-favorite:hover {
+    border-color: rgba(19, 22, 4, 0.5) !important;
+  }
+
+  .btn-favorite svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  .make-inquiry {
+    display: flex;
+    height: 48px;
+    padding: 0 32px;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    color: #131604;
+    border: 1px solid #131604 !important;
+    background: transparent;
+    font-size: 14px;
+    font-style: normal;
+    font-weight: 500;
+    line-height: 16.8px;
+    cursor: pointer;
+    margin-bottom: 20px;
+  }
+
+  .product-shipping {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    margin: 20px 0 20px;
+  }
+
+  .product-shipping svg {
+    flex-shrink: 0;
+  }
+  .product-shipping-info {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+    font-size: 14px;
+    color: var(--dark-80, rgba(19, 22, 4, 0.80));
+
+    strong {
+      font-weight: 400;
+    }
+  }
+  .product-shipping-info p:last-child {
+    font-weight: 300;
+    color: rgba(19, 22, 4, 0.7);
+    line-height: 21px;
+
+    a {
+      color: rgba(19, 22, 4, 0.7);
+      text-decoration-line: underline;
+      text-decoration-style: solid;
+      text-decoration-skip-ink: auto;
+      text-decoration-thickness: auto;
+      text-underline-offset: auto;
+    }
+  }
+
+  /* ===================== Mobile (max 767px) ===================== */
+  @media screen and (max-width: 767px) {
+    .breadcrumb {
+      padding: 12px 10px;
+    }
+    .product-layout {
+      padding: 0;
+      gap: 16px;
+    }
+    .product-info {
+      padding: 0 10px;
+    }
+    .product-gallery__swiper {
+      width: 100%;
+      overflow: hidden;
+    }
+    .product-gallery__swiper .swiper-slide {
+      height: auto !important;
+    }
+    .product-gallery__swiper .swiper-slide img {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    /* Swiper nav arrows — show only on mobile */
+    .swiper-button-prev,
+    .swiper-button-next {
+      display: flex !important;
+      align-items: center;
+      justify-content: center;
+    }
+    .swiper-button-prev {
+      left: 8px !important;
+      right: auto !important;
+    }
+    .swiper-button-next {
+      right: 8px !important;
+      left: auto !important;
+    }
+    .product-gallery__thumbs {
+      display: block;
+      padding: 8px 10px;
+    }
+    .product-thumbs__swiper .swiper-slide {
+      width: 64px !important;
+      height: 64px;
+      overflow: hidden;
+      border: 1px solid transparent;
+      transition: border-color 0.3s;
+    }
+    .product-thumbs__swiper .swiper-slide-thumb-active {
+      border: 1px solid var(--brand-main, #706a38);
+    }
+    .product-thumbs__swiper .swiper-slide img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+  }
+
+  /* ===================== Tablet (768px - 1279px) ===================== */
+  @media screen and (min-width: 768px) and (max-width: 1279px) {
+    .product-layout {
+      padding: 0 40px;
+    }
+    .product-gallery__swiper {
+      overflow: visible;
+    }
+    .product-gallery__swiper .swiper-wrapper {
+      display: grid !important;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      transform: none !important;
+    }
+    .product-gallery__swiper .swiper-wrapper .swiper-slide {
+      width: 100% !important;
+      height: auto !important;
+    }
+  }
+
+  /* ===================== Desktop (min 1280px) ===================== */
+  @media screen and (min-width: 1280px) {
+    .product-layout {
+      display: grid;
+      grid-template-columns: 1fr 440px;
+      gap: 40px;
+      align-items: start;
+      padding: 0 40px;
+    }
+    .product-gallery__swiper {
+      overflow: visible;
+    }
+    .product-gallery__swiper .swiper-wrapper {
+      display: grid !important;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      transform: none !important;
+    }
+    .product-gallery__swiper .swiper-wrapper .swiper-slide {
+      width: 100% !important;
+      height: auto !important;
+    }
+    .product-info {
+      position: sticky;
+      top: 130px;
+    }
+  }
+{%- endstylesheet -%}
 
 {% schema %}
 {
   "name": "t:general.product",
-  "settings": [],
+  "settings": [
+    {
+      "type": "product",
+      "id": "fallback_product",
+      "label": "Fallback product"
+    },
+    {
+      "type": "richtext",
+      "id": "shipping_info",
+      "label": "Shipping & delivery info",
+      "default": "<p><strong>Estimated Delivery: May 14, 2026</strong></p><p>Your ring is crafted to order and delivered via fully insured express shipping. Need it sooner? <em>Priority crafting options are available.</em></p>"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "shape",
+      "name": "Shape",
+      "settings": [
+        {
+          "type": "image_picker",
+          "id": "image",
+          "label": "Shape image"
+        },
+        {
+          "type": "text",
+          "id": "name",
+          "label": "Shape name",
+          "default": "Emerald"
+        },
+        {
+          "type": "url",
+          "id": "product_link",
+          "label": "Product link"
+        },
+        {
+          "type": "checkbox",
+          "id": "is_active",
+          "label": "Active",
+          "default": false
+        }
+      ]
+    },
+    {
+      "type": "metal_option",
+      "name": "Metal option",
+      "settings": [
+        {
+          "type": "image_picker",
+          "id": "image",
+          "label": "Metal swatch image"
+        },
+        {
+          "type": "text",
+          "id": "metal_value",
+          "label": "Metal value",
+          "info": "Must match the variant option value exactly (e.g. '14k Yellow Gold')"
+        }
+      ]
+    }
+  ],
   "disabled_on": {
     "groups": ["header", "footer"]
   }
