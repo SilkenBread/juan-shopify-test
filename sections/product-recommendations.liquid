@@ -1,0 +1,405 @@
+{%- liquid
+  assign recommendations_collection = section.settings.collection
+  assign recommendations_limit = section.settings.products_limit | default: 8
+-%}
+
+<div class="product_recommendations__inner" data-product-recommendations-section="{{ section.id }}">
+  <h2 class="product_recommendations__title">
+    {{ section.settings.title }}
+  </h2>
+
+  {%- if recommendations_collection != blank and recommendations_collection.products_count > 0 -%}
+    <div class="product_recommendations__carousel">
+      <div class="swiper product-recommendations__swiper" data-product-recommendations-swiper>
+        <div class="swiper-wrapper">
+          {%- for product in recommendations_collection.products limit: recommendations_limit -%}
+            <div class="swiper-slide">
+              {% render 'product-card', product: product, section: section %}
+            </div>
+          {%- endfor -%}
+        </div>
+      </div>
+
+      <button
+        type="button"
+        class="product-recommendations__nav product-recommendations__nav--prev"
+        aria-label="Previous products"
+        data-product-recommendations-prev
+      >
+        <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle opacity="0.06" cx="16" cy="16" r="16" transform="matrix(-1 0 0 1 32 0)" fill="#131604"/>
+          <path d="M18.8 22.4L12.4 16L18.8 9.60001" stroke="#131604" stroke-opacity="0.8" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+
+      <button
+        type="button"
+        class="product-recommendations__nav product-recommendations__nav--next"
+        aria-label="Next products"
+        data-product-recommendations-next
+      >
+        <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle opacity="0.06" cx="16" cy="16" r="16" fill="#131604"/>
+          <path d="M13.2 22.4L19.6 16L13.2 9.60001" stroke="#131604" stroke-opacity="0.8" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+    </div>
+  {%- else -%}
+    <p class="product_recommendations__empty">Select a collection to show product recommendations.</p>
+  {%- endif -%}
+</div>
+
+<script>
+  (function () {
+    var sectionId = '{{ section.id }}';
+    var selector = '[data-product-recommendations-section="' + sectionId + '"]';
+
+    function initSection() {
+      var root = document.querySelector(selector);
+      if (!root || root.dataset.swiperInitialized === 'true') return;
+
+      var swiperEl = root.querySelector('[data-product-recommendations-swiper]');
+      if (!swiperEl || typeof Swiper === 'undefined') return;
+
+      var prevBtn = root.querySelector('[data-product-recommendations-prev]');
+      var nextBtn = root.querySelector('[data-product-recommendations-next]');
+
+      swiperEl.productRecommendationsSwiper = new Swiper(swiperEl, {
+        slidesPerView: 'auto',
+        spaceBetween: 10,
+        navigation: {
+          prevEl: prevBtn,
+          nextEl: nextBtn,
+        },
+      });
+
+      root.dataset.swiperInitialized = 'true';
+    }
+
+    function destroySection(targetSectionId) {
+      if (targetSectionId !== sectionId) return;
+
+      var root = document.querySelector(selector);
+      if (!root) return;
+
+      var swiperEl = root.querySelector('[data-product-recommendations-swiper]');
+      if (swiperEl && swiperEl.productRecommendationsSwiper) {
+        swiperEl.productRecommendationsSwiper.destroy(true, true);
+        swiperEl.productRecommendationsSwiper = null;
+      }
+
+      root.dataset.swiperInitialized = 'false';
+    }
+
+    document.addEventListener('DOMContentLoaded', initSection);
+    document.addEventListener('shopify:section:load', function (event) {
+      if (event.detail && event.detail.sectionId === sectionId) {
+        initSection();
+      }
+    });
+    document.addEventListener('shopify:section:unload', function (event) {
+      if (event.detail && event.detail.sectionId) {
+        destroySection(event.detail.sectionId);
+      }
+    });
+
+    initSection();
+  })();
+</script>
+
+{%- stylesheet -%}
+  .product_recommendations {
+    display: flex;
+    width: 100%;
+    padding: 0 90px 80px;
+    flex-direction: column;
+    align-items: center;
+    gap: 32px;
+    overflow: hidden;
+  }
+
+  .product_recommendations__inner {
+    width: 100%;
+  }
+
+  .product_recommendations__title {
+    color: #131604;
+    text-align: center;
+    font-family: 'Orpheus Pro';
+    font-size: 32px;
+    font-style: normal;
+    font-weight: 400;
+    line-height: 35.2px;
+    margin: 0 0 32px;
+  }
+
+  .product_recommendations__carousel {
+    position: relative;
+    width: 100%;
+  }
+
+  .product-recommendations__swiper {
+    width: 100%;
+    overflow: visible;
+  }
+
+  .product-recommendations__swiper .swiper-slide {
+    width: 307.5px;
+    height: auto;
+  }
+
+  .product-card {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .product-card__image-link {
+    display: block;
+    width: 307.5px;
+    height: 400px;
+    max-width: 100%;
+    overflow: hidden;
+    background: #f5f3eb;
+  }
+
+  .product-card__image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  .product-card__info {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 8px;
+  }
+
+  .product-card__text {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-width: 0;
+    flex: 1;
+  }
+
+  .product-card__title {
+    margin: 0;
+    flex: 0;
+  }
+
+  .product-card__title,
+  .product-card__price {
+    font-size: 24px;
+    line-height: 19.6px;
+    color: #131604;
+    margin: 0;
+  }
+
+  .product-card__title a {
+    font-size: 16px;
+    color: #131604;
+    font-weight: 400;
+  }
+
+  .product-card__price {
+    font-size: 14px;
+    color: rgba(19, 22, 4, 0.80);
+    letter-spacing: 0.4px;
+  }
+
+  .product-card__swatches {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 10px;
+    flex-wrap: wrap;
+    min-height: 34px;
+    flex: 0 0 auto;
+  }
+
+  .product-card__swatch {
+    width: 19.2px;
+    height: 19.2px;
+    border-radius: 50%;
+    border: 1px solid transparent;
+    background: #f2eee1;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    cursor: pointer;
+  }
+
+  .product-card__swatch--active {
+    border-color: #131604;
+  }
+
+  .product-card__swatch-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .product-card__swatch-fallback {
+    font-size: 9px;
+    color: rgba(19, 22, 4, 0.7);
+    line-height: 1;
+  }
+
+  .product-recommendations__nav {
+    position: absolute;
+    top: 42%;
+    transform: translateY(-50%);
+    z-index: 2;
+    width: 32px;
+    height: 32px;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .product-recommendations__nav--prev {
+    left: -16px;
+  }
+
+  .product-recommendations__nav--next {
+    right: -16px;
+  }
+
+  .product_recommendations__empty {
+    margin: 0;
+    font-size: 14px;
+    color: rgba(19, 22, 4, 0.7);
+    text-align: center;
+  }
+
+  @media screen and (max-width: 1279px) {
+    .product_recommendations {
+      padding: 0 24px 56px;
+      gap: 24px;
+    }
+
+    .product_recommendations__title {
+      font-size: 32px;
+      font-weight: 400;
+      line-height: 35.2px;
+      margin: 0 0 20px;
+    }
+
+    .product-card__swatches {
+      gap: 8px;
+    }
+
+    .product-recommendations__nav--prev {
+      left: -10px;
+    }
+
+    .product-recommendations__nav--next {
+      right: -10px;
+    }
+  }
+
+  @media screen and (max-width: 767px) {
+    .product_recommendations {
+      padding: 50px 10px;
+      gap: 20px;
+    }
+
+    .product_recommendations__title {
+      font-size: 28px;
+      font-weight: 400;
+      line-height: 30.8px;
+    }
+
+    .product-card__image-link {
+      width: 180px;
+      height: 234.15px;
+    }
+
+    .product-recommendations__swiper .swiper-slide {
+      width: 180px;
+    }
+
+    .product-card__info {
+      flex-direction: column;
+      padding: unset;
+      align-items: center;
+      text-align: center;
+      gap: 10px;
+    }
+
+    .product-card__swatches {
+      gap: 6px;
+    }
+
+    .product-recommendations__nav {
+      top: 38%;
+    }
+
+    .product-recommendations__nav--prev {
+      left: -6px;
+    }
+
+    .product-recommendations__nav--next {
+      right: -6px;
+    }
+  }
+{%- endstylesheet -%}
+
+{% schema %}
+{
+  "name": "Product Recommendations",
+  "tag": "section",
+  "class": "product_recommendations",
+  "settings": [
+    {
+      "type": "text",
+      "id": "title",
+      "label": "Title",
+      "default": "You may also like"
+    },
+    {
+      "type": "collection",
+      "id": "collection",
+      "label": "Collection"
+    },
+    {
+      "type": "range",
+      "id": "products_limit",
+      "label": "Products to show",
+      "min": 2,
+      "max": 12,
+      "step": 1,
+      "default": 8
+    }
+  ],
+  "blocks": [
+    {
+      "type": "metal_option",
+      "name": "Metal option",
+      "settings": [
+        {
+          "type": "image_picker",
+          "id": "image",
+          "label": "Metal swatch image"
+        },
+        {
+          "type": "text",
+          "id": "metal_value",
+          "label": "Metal value",
+          "info": "Must match the variant option value exactly (e.g. '14k Yellow Gold')"
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}
