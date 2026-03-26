@@ -33,7 +33,10 @@
   }
   .custom-section__content {
     display: grid;
-    grid-template-columns: var(--content-grid);
+    grid-template-columns:
+      minmax(var(--page-margin), 1fr)
+      minmax(0, min(var(--content-width), calc(100% - (var(--page-margin) * 2))))
+      minmax(var(--page-margin), 1fr);
   }
   .custom-section__content > * {
     grid-column: 2;

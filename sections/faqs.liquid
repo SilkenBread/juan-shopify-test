@@ -1,0 +1,177 @@
+<h2 class="faq_title">Frequently Asked Questions</h2>
+
+<div class="faqs_container">
+  {%- for block in section.blocks -%}
+    {%- if block.type == 'faq_item' -%}
+      <details class="faq_item" {{ block.shopify_attributes }}>
+        <summary class="faq_item__summary">
+          <span class="faq_item__icon" aria-hidden="true">
+            <span class="faq_item__icon-open">
+              <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 12 12" fill="none">
+                <path d="M5.75 0.75V10.75M10.75 5.75H0.75" stroke="#131604" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </span>
+            <span class="faq_item__icon-close">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" fill="none">
+                <path d="M14 9H4" stroke="#131604" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </span>
+          </span>
+          <span class="faq_item__question">{{ block.settings.question }}</span>
+        </summary>
+        <div class="faq_item__answer rte">
+          {{ block.settings.answer | replace: '<p>&nbsp;</p>', '<br>' | replace: '<p></p>', '' }}
+        </div>
+      </details>
+    {%- endif -%}
+  {%- endfor -%}
+</div>
+
+{%- stylesheet -%}
+  .faqs {
+    display: flex;
+    width: 100%;
+    margin: 0 auto;
+    padding: 60px 0;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 40px;
+    background: var(--bg-light, #f8f5ea);
+  }
+  .faq_title {
+    color: var(--dark-100, #131604);
+    text-align: center;
+    font-family: 'Orpheus Pro';
+    font-size: 32px;
+    font-style: normal;
+    font-weight: 400;
+    line-height: 35.2px;
+    width: 100%;
+  }
+  .faqs_container {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    max-width: 1260px;
+    margin: 0 auto;
+    font-size: 14px;
+    letter-spacing: 0.4px;
+  }
+
+  .faq_item {
+    border-bottom: 1px solid rgba(19, 22, 4, 0.16);
+  }
+
+  .faq_item__summary {
+    list-style: none;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    margin: 20px 0;
+  }
+
+  .faq_item__summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .faq_item__icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+  }
+
+  .faq_item__icon-close {
+    display: none;
+  }
+
+  .faq_item[open] .faq_item__icon-open {
+    display: none;
+  }
+
+  .faq_item[open] .faq_item__icon-close {
+    display: inline-flex;
+  }
+
+  .faq_item__question {
+    color: #131604;
+    font-size: 14px;
+    line-height: 19.6px;
+  }
+
+  .faq_item__answer {
+    padding: 0 0 18px 34px;
+    color: rgba(19, 22, 4, 0.80);
+    font-size: 14px;
+    line-height: 19.6px;
+  }
+
+  .faq_item__answer p {
+    margin: 0;
+  }
+
+  .faq_item__answer p + p {
+    margin-top: 12px;
+  }
+
+  .faq_item__answer p:empty {
+    display: none;
+  }
+
+  @media screen and (max-width: 767px) {
+    .faqs {
+      padding: 40px 10px;
+    }
+    .faq_title {
+      font-size: 28px;
+      line-height: 30.8px;
+    }
+
+    .faq_item__answer {
+      padding: 0 0 14px 30px;
+    }
+  }
+{%- endstylesheet -%}
+
+{% schema %}
+{
+  "name": "FAQs",
+  "tag": "section",
+  "class": "faqs",
+  "settings": [],
+  "blocks": [
+    {
+      "type": "faq_item",
+      "name": "FAQ item",
+      "settings": [
+        {
+          "type": "text",
+          "id": "question",
+          "label": "Question",
+          "default": "What is your return policy?"
+        },
+        {
+          "type": "richtext",
+          "id": "answer",
+          "label": "Answer",
+          "default": "<p>We offer a 30-day return policy for all our products. If you are not satisfied with your purchase, you can return it within 30 days for a full refund.</p>"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "FAQs",
+      "settings": {},
+      "blocks": [
+        {
+          "type": "faq_item"
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}
