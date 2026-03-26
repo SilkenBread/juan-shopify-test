@@ -199,6 +199,42 @@
         "shipping_info": "<p><strong>Estimated Delivery: May 14, 2026</strong></p><p>Your ring is crafted to order and delivered via fully insured express shipping. Need it sooner? <a href=\"/policies/privacy-policy\" title=\"Privacy Policy\">Priority crafting options are available.</a></p>"
       }
     },
+    "product-recommendations": {
+      "type": "product-recommendations",
+      "blocks": {
+        "metal_option_8tAqxX": {
+          "type": "metal_option",
+          "settings": {
+            "image": "shopify://shop_images/Material_Silver.png",
+            "metal_value": "14k White Gold"
+          }
+        },
+        "metal_option_UEWE3P": {
+          "type": "metal_option",
+          "settings": {
+            "image": "shopify://shop_images/Material_Gold.png",
+            "metal_value": "14k Yellow Gold"
+          }
+        },
+        "metal_option_gELBhU": {
+          "type": "metal_option",
+          "settings": {
+            "image": "shopify://shop_images/Material_Rose_Gold.png",
+            "metal_value": "14k Rose Gold"
+          }
+        }
+      },
+      "block_order": [
+        "metal_option_8tAqxX",
+        "metal_option_UEWE3P",
+        "metal_option_gELBhU"
+      ],
+      "settings": {
+        "title": "You may also like",
+        "collection": "engagement-rings",
+        "products_limit": 8
+      }
+    },
     "faqs": {
       "type": "faqs",
       "blocks": {
@@ -344,6 +380,7 @@
   },
   "order": [
     "product",
+    "product-recommendations",
     "faqs",
     "trust-badges",
     "follow-us"
