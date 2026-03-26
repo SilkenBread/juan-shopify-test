@@ -12,6 +12,27 @@
     "product": {
       "type": "product",
       "blocks": {
+        "product_detail_wBF8HP": {
+          "type": "product_detail",
+          "settings": {
+            "title": "Details",
+            "content": "<p>The Emerald Cut Solitaire in 18k yellow gold with a lab grown emerald diamond.<br/>This design reflects the enduring simplicity of a classic solitaire engagement ring. Crafted to sit balanced on the finger and pair seamlessly with a wedding band, the elevated four-prong basket allows light to enter from all angles, enhancing the diamond’s depth and clarity.</p><p><strong>SKU:</strong> LGD233112<br/><strong>Center Stone:</strong> Emerald Cut<br/><strong>Setting: </strong>Four Prong Solitaire<br/><strong>Band Width: </strong>Approx. 1.8–2.0mm<br/><strong>Metal: </strong>18k Yellow Gold<br/><strong>Profile:</strong> Elevated basket for flush band pairing<br/><strong>Designed by: </strong>Robert Palma</p><h5>Lab Grown Diamond</h5><p><strong>Origin: </strong>Lab grown using advanced zero-emission technology.<br/><strong>Certification: </strong>Independently graded and certified</p>"
+          }
+        },
+        "product_detail_YKmUpb": {
+          "type": "product_detail",
+          "settings": {
+            "title": "Resizing",
+            "content": "<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Etiam risus libero, sodales non posuere non, tincidunt quis est. Vestibulum congue, diam quis lobortis maximus, diam velit vulputate erat, sit amet scelerisque ex ante id urna. Integer quis porta diam, id congue erat. Duis vel lectus euismod, maximus risus nec, sodales mi. Donec egestas faucibus egestas. Suspendisse euismod aliquet cursus. Nunc convallis rutrum luctus. Donec id dolor ut velit laoreet auctor. Interdum et malesuada fames ac ante ipsum primis in faucibus.</p>"
+          }
+        },
+        "product_detail_Yj6gzi": {
+          "type": "product_detail",
+          "settings": {
+            "title": "Shipping & Returns",
+            "content": "<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Etiam risus libero, sodales non posuere non, tincidunt quis est. Vestibulum congue, diam quis lobortis maximus, diam velit vulputate erat, sit amet scelerisque ex ante id urna. Integer quis porta diam, id congue erat. Duis vel lectus euismod, maximus risus nec, sodales mi. Donec egestas faucibus egestas. Suspendisse euismod aliquet cursus. Nunc convallis rutrum luctus. Donec id dolor ut velit laoreet auctor. Interdum et malesuada fames ac ante ipsum primis in faucibus.</p>"
+          }
+        },
         "metal_option_hc7zC9": {
           "type": "metal_option",
           "settings": {
@@ -152,6 +173,9 @@
         }
       },
       "block_order": [
+        "product_detail_wBF8HP",
+        "product_detail_YKmUpb",
+        "product_detail_Yj6gzi",
         "metal_option_hc7zC9",
         "metal_option_aWja34",
         "metal_option_t9PhAX",
@@ -171,7 +195,8 @@
         "shape_6YKKpc"
       ],
       "settings": {
-        "fallback_product": "emerald-cut-solitare-engagement-ring"
+        "fallback_product": "emerald-cut-solitare-engagement-ring",
+        "shipping_info": "<p><strong>Estimated Delivery: May 14, 2026</strong></p><p>Your ring is crafted to order and delivered via fully insured express shipping. Need it sooner? <a href=\"/policies/privacy-policy\" title=\"Privacy Policy\">Priority crafting options are available.</a></p>"
       }
     },
     "trust-badges": {
