@@ -1,0 +1,163 @@
+<div class="follow_us__title_container">
+  <h2 class="follow_us__title">Follow Us</h2>
+</div>
+
+<div class="follow_us__images">
+  {% for block in section.blocks %}
+    {% if block.settings.image != blank %}
+      <div class="follow_us__image_item" {{ block.shopify_attributes }}>
+        {{
+          block.settings.image
+          | image_url: width: 512
+          | image_tag:
+            class: 'follow_us__image',
+            loading: 'lazy',
+            widths: '180, 256, 360, 512',
+            sizes: '(max-width: 749px) 180px, 256px'
+        }}
+      </div>
+    {% endif %}
+  {% endfor %}
+</div>
+
+<button class="follow_us__button">FOLLOW US</button>
+
+{%- stylesheet -%}
+  .follow_us {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    grid-template-areas:
+      'title button'
+      'images images';
+    padding: 50px 30px;
+    align-items: start;
+    gap: 40px;
+    background: var(--bg-light, #f8f5ea);
+  }
+  .follow_us__title_container {
+    grid-area: title;
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    align-self: stretch;
+  }
+  .follow_us__title {
+    color: var(--dark-100, #131604);
+    font-family: 'Orpheus Pro';
+    font-size: 32px;
+    font-style: normal;
+    font-weight: 400;
+    line-height: 35.2px;
+    margin: 0;
+  }
+  .follow_us__images {
+    grid-area: images;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 16px;
+    width: 100%;
+  }
+  .follow_us__image_item {
+    width: 256px;
+    height: 260px;
+    flex: 0 0 256px;
+  }
+  .follow_us__image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+  .follow_us__button {
+    grid-area: button;
+    display: flex;
+    height: 48px;
+    padding: 0 32px;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    border: 1px solid var(--dark-100, #131604) !important;
+    justify-self: end;
+  }
+
+  @media screen and (max-width: 749px) {
+    .follow_us {
+      grid-template-columns: 1fr;
+      grid-template-areas:
+        'title'
+        'images'
+        'button';
+      padding: 32px 10px;
+      gap: 24px;
+    }
+    .follow_us__title_container {
+      justify-content: center;
+      text-align: center;
+    }
+    .follow_us__title {
+      font-size: 28px;
+    }
+    .follow_us__images {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+      justify-items: center;
+    }
+    .follow_us__image_item {
+      width: 180px;
+      height: 180px;
+      flex: none;
+    }
+    .follow_us__image_item:nth-child(n + 5) {
+      display: none;
+    }
+    .follow_us__button {
+      width: 100%;
+      justify-self: stretch;
+    }
+  }
+{%- endstylesheet -%}
+
+{% schema %}
+{
+  "name": "Follow Us",
+  "tag": "section",
+  "class": "follow_us",
+  "max_blocks": 5,
+  "settings": [],
+  "blocks": [
+    {
+      "type": "image",
+      "name": "Image",
+      "settings": [
+        {
+          "type": "image_picker",
+          "id": "image",
+          "label": "Image"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Follow Us",
+      "settings": {},
+      "blocks": [
+        {
+          "type": "image"
+        },
+        {
+          "type": "image"
+        },
+        {
+          "type": "image"
+        },
+        {
+          "type": "image"
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

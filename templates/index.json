@@ -297,11 +297,55 @@
         "badge_aJjJ99"
       ],
       "settings": {}
+    },
+    "follow-us": {
+      "type": "follow-us",
+      "blocks": {
+        "image_xEYp6F": {
+          "type": "image",
+          "settings": {
+            "image": "shopify://shop_images/Figure_u2678577971_A_close-up_lifestyle_shot_of_a_stylish_woman_with_c2a54e75-2cf3-441c-8c3f-8c0e05ccaa9c_1_jpg.jpg"
+          }
+        },
+        "image_fWrC7j": {
+          "type": "image",
+          "settings": {
+            "image": "shopify://shop_images/Figure_u2678577971_A_close-up_lifestyle_shot_of_a_stylish_woman_with_c2a54e75-2cf3-441c-8c3f-8c0e05ccaa9c_1.jpg_1.jpg"
+          }
+        },
+        "image_cUri6C": {
+          "type": "image",
+          "settings": {
+            "image": "shopify://shop_images/Figure_u2678577971_A_close-up_lifestyle_shot_of_a_stylish_woman_with_c2a54e75-2cf3-441c-8c3f-8c0e05ccaa9c_1.jpg_2.jpg"
+          }
+        },
+        "image_JXL6pH": {
+          "type": "image",
+          "settings": {
+            "image": "shopify://shop_images/Figure_u2678577971_A_close-up_lifestyle_shot_of_a_stylish_woman_with_c2a54e75-2cf3-441c-8c3f-8c0e05ccaa9c_1.jpg_3.jpg"
+          }
+        },
+        "image_e7fEtz": {
+          "type": "image",
+          "settings": {
+            "image": "shopify://shop_images/Figure_u2678577971_A_close-up_lifestyle_shot_of_a_stylish_woman_with_c2a54e75-2cf3-441c-8c3f-8c0e05ccaa9c_1.jpg_4.jpg"
+          }
+        }
+      },
+      "block_order": [
+        "image_xEYp6F",
+        "image_fWrC7j",
+        "image_cUri6C",
+        "image_JXL6pH",
+        "image_e7fEtz"
+      ],
+      "settings": {}
     }
   },
   "order": [
     "product",
     "faqs",
-    "trust-badges"
+    "trust-badges",
+    "follow-us"
   ]
 }
