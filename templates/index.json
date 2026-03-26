@@ -199,6 +199,70 @@
         "shipping_info": "<p><strong>Estimated Delivery: May 14, 2026</strong></p><p>Your ring is crafted to order and delivered via fully insured express shipping. Need it sooner? <a href=\"/policies/privacy-policy\" title=\"Privacy Policy\">Priority crafting options are available.</a></p>"
       }
     },
+    "faqs": {
+      "type": "faqs",
+      "blocks": {
+        "faq_item_4P3Dtm": {
+          "type": "faq_item",
+          "settings": {
+            "question": "What makes an emerald cut different from other diamond shapes?",
+            "answer": "<p>Emerald cuts feature long, step-cut facets that emphasize clarity and symmetry rather than sparkle alone. They create a hall-of-mirrors effect and a clean, architectural look.</p>"
+          }
+        },
+        "faq_item_k6UxpR": {
+          "type": "faq_item",
+          "settings": {
+            "question": "What carat size works best for this design?",
+            "answer": "<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Proin tempor venenatis blandit. Nam ac nisl non sem blandit tristique. Aenean quis malesuada velit. Donec consequat sem non dui tempus viverra. Praesent tempor, est et varius vulputate, velit massa facilisis purus, et tempus massa nibh vel tellus. Nullam et dui congue, rhoncus lectus quis, fringilla mi. Sed dolor urna, malesuada id sapien ut, pellentesque posuere risus. In hac habitasse platea dictumst.</p>"
+          }
+        },
+        "faq_item_XqNP9T": {
+          "type": "faq_item",
+          "settings": {
+            "question": "Will a wedding band sit flush with this ring?",
+            "answer": "<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Proin tempor venenatis blandit. Nam ac nisl non sem blandit tristique. Aenean quis malesuada velit. Donec consequat sem non dui tempus viverra. Praesent tempor, est et varius vulputate, velit massa facilisis purus, et tempus massa nibh vel tellus. Nullam et dui congue, rhoncus lectus quis, fringilla mi. Sed dolor urna, malesuada id sapien ut, pellentesque posuere risus. In hac habitasse platea dictumst.</p>"
+          }
+        },
+        "faq_item_jB74LH": {
+          "type": "faq_item",
+          "settings": {
+            "question": "Are the diamonds certified?",
+            "answer": "<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Proin tempor venenatis blandit. Nam ac nisl non sem blandit tristique. Aenean quis malesuada velit. Donec consequat sem non dui tempus viverra. Praesent tempor, est et varius vulputate, velit massa facilisis purus, et tempus massa nibh vel tellus. Nullam et dui congue, rhoncus lectus quis, fringilla mi. Sed dolor urna, malesuada id sapien ut, pellentesque posuere risus. In hac habitasse platea dictumst.</p>"
+          }
+        },
+        "faq_item_cGhKCw": {
+          "type": "faq_item",
+          "settings": {
+            "question": "Can this ring be resized?",
+            "answer": "<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Proin tempor venenatis blandit. Nam ac nisl non sem blandit tristique. Aenean quis malesuada velit. Donec consequat sem non dui tempus viverra. Praesent tempor, est et varius vulputate, velit massa facilisis purus, et tempus massa nibh vel tellus. Nullam et dui congue, rhoncus lectus quis, fringilla mi. Sed dolor urna, malesuada id sapien ut, pellentesque posuere risus. In hac habitasse platea dictumst.</p>"
+          }
+        },
+        "faq_item_Qh8B4q": {
+          "type": "faq_item",
+          "settings": {
+            "question": "How long does production take?",
+            "answer": "<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Proin tempor venenatis blandit. Nam ac nisl non sem blandit tristique. Aenean quis malesuada velit. Donec consequat sem non dui tempus viverra. Praesent tempor, est et varius vulputate, velit massa facilisis purus, et tempus massa nibh vel tellus. Nullam et dui congue, rhoncus lectus quis, fringilla mi. Sed dolor urna, malesuada id sapien ut, pellentesque posuere risus. In hac habitasse platea dictumst.</p>"
+          }
+        },
+        "faq_item_HwAyE9": {
+          "type": "faq_item",
+          "settings": {
+            "question": "Is engraving available?",
+            "answer": "<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Proin tempor venenatis blandit. Nam ac nisl non sem blandit tristique. Aenean quis malesuada velit. Donec consequat sem non dui tempus viverra. Praesent tempor, est et varius vulputate, velit massa facilisis purus, et tempus massa nibh vel tellus. Nullam et dui congue, rhoncus lectus quis, fringilla mi. Sed dolor urna, malesuada id sapien ut, pellentesque posuere risus. In hac habitasse platea dictumst.</p>"
+          }
+        }
+      },
+      "block_order": [
+        "faq_item_4P3Dtm",
+        "faq_item_k6UxpR",
+        "faq_item_XqNP9T",
+        "faq_item_jB74LH",
+        "faq_item_cGhKCw",
+        "faq_item_Qh8B4q",
+        "faq_item_HwAyE9"
+      ],
+      "settings": {}
+    },
     "trust-badges": {
       "type": "trust-badges",
       "blocks": {
@@ -233,10 +297,55 @@
         "badge_aJjJ99"
       ],
       "settings": {}
+    },
+    "follow-us": {
+      "type": "follow-us",
+      "blocks": {
+        "image_xEYp6F": {
+          "type": "image",
+          "settings": {
+            "image": "shopify://shop_images/Figure_u2678577971_A_close-up_lifestyle_shot_of_a_stylish_woman_with_c2a54e75-2cf3-441c-8c3f-8c0e05ccaa9c_1_jpg.jpg"
+          }
+        },
+        "image_fWrC7j": {
+          "type": "image",
+          "settings": {
+            "image": "shopify://shop_images/Figure_u2678577971_A_close-up_lifestyle_shot_of_a_stylish_woman_with_c2a54e75-2cf3-441c-8c3f-8c0e05ccaa9c_1.jpg_1.jpg"
+          }
+        },
+        "image_cUri6C": {
+          "type": "image",
+          "settings": {
+            "image": "shopify://shop_images/Figure_u2678577971_A_close-up_lifestyle_shot_of_a_stylish_woman_with_c2a54e75-2cf3-441c-8c3f-8c0e05ccaa9c_1.jpg_2.jpg"
+          }
+        },
+        "image_JXL6pH": {
+          "type": "image",
+          "settings": {
+            "image": "shopify://shop_images/Figure_u2678577971_A_close-up_lifestyle_shot_of_a_stylish_woman_with_c2a54e75-2cf3-441c-8c3f-8c0e05ccaa9c_1.jpg_3.jpg"
+          }
+        },
+        "image_e7fEtz": {
+          "type": "image",
+          "settings": {
+            "image": "shopify://shop_images/Figure_u2678577971_A_close-up_lifestyle_shot_of_a_stylish_woman_with_c2a54e75-2cf3-441c-8c3f-8c0e05ccaa9c_1.jpg_4.jpg"
+          }
+        }
+      },
+      "block_order": [
+        "image_xEYp6F",
+        "image_fWrC7j",
+        "image_cUri6C",
+        "image_JXL6pH",
+        "image_e7fEtz"
+      ],
+      "settings": {}
     }
   },
   "order": [
     "product",
-    "trust-badges"
+    "faqs",
+    "trust-badges",
+    "follow-us"
   ]
 }

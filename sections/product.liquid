@@ -591,6 +591,7 @@
     if (caratSlider) {
       updateCaratSlider();
       caratSlider.addEventListener('input', updateCaratSlider);
+      window.addEventListener('resize', updateCaratSlider);
     }
 
     /* ===================== Floating CTA (Mobile) ===================== */
@@ -1368,7 +1369,7 @@
       grid-template-columns: 1fr 440px;
       gap: 40px;
       align-items: start;
-      padding: 0 40px;
+      padding: 0 30px 120px 30px;
     }
     .product-gallery__swiper {
       overflow: visible;

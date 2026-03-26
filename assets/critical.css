@@ -15,6 +15,12 @@ body {
   min-height: 100svh;
 }
 
+html,
+body {
+  width: 100%;
+  min-width: 100%;
+}
+
 html:has(dialog[scroll-lock][open], details[scroll-lock][open]) {
   overflow: hidden;
 }
@@ -105,12 +111,12 @@ body {
  * the entire viewport.
  */
 .shopify-section {
-  --content-margin: minmax(var(--page-margin), 1fr);
-  --content-grid: var(--content-margin) var(--content-width) var(--content-margin);
-
   /* This is required to make <img> elements work as background images */
   position: relative;
-  grid-template-columns: var(--content-grid);
+  grid-template-columns:
+    minmax(var(--page-margin), 1fr)
+    minmax(0, min(var(--content-width), calc(100% - (var(--page-margin) * 2))))
+    minmax(var(--page-margin), 1fr);
   display: grid;
   width: 100%;
 }
