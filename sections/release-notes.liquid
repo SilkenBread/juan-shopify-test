@@ -1,0 +1,447 @@
+<div
+  class="release-notes full-width"
+  style="
+    --rn-bg-color: {{ section.settings.text_bg_color }};
+    --rn-text-color: {{ section.settings.text_color }};
+    --rn-subtitle-color: {{ section.settings.subtitle_color }};
+    --rn-title-color: {{ section.settings.title_color }};
+    --rn-btn-bg: {{ section.settings.button_bg_color }};
+    --rn-btn-text: {{ section.settings.button_text_color }};
+    --rn-btn-border: {{ section.settings.button_border_color }};
+    --rn-list-icon-color: {{ section.settings.list_icon_color }};
+  "
+>
+  <div class="release-notes__wrapper {% if section.settings.reverse_columns %}release-notes__wrapper--reversed{% endif %}">
+    <div class="release-notes__text-column">
+      <div class="release-notes__text-content">
+        {% if section.settings.subtitle != blank %}
+          <span class="release-notes__subtitle">{{ section.settings.subtitle }}</span>
+        {% endif %}
+
+        {% if section.settings.title != blank %}
+          <h2 class="release-notes__title">{{ section.settings.title }}</h2>
+        {% endif %}
+
+        {% if section.settings.content != blank %}
+          <div class="release-notes__description">{{ section.settings.content }}</div>
+        {% endif %}
+
+        {% assign list_blocks = section.blocks | where: "type", "list_item" %}
+        {% if list_blocks.size > 0 %}
+          <ul class="release-notes__list">
+            {% for block in list_blocks %}
+              <li class="release-notes__list-item" {{ block.shopify_attributes }}>
+                {% if block.settings.icon != blank %}
+                  <span class="release-notes__list-icon">
+                    {{ block.settings.icon | image_url: width: 40 | image_tag }}
+                  </span>
+                {% else %}
+                  <span class="release-notes__list-icon release-notes__list-icon--default">
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M10 2L12.09 7.26L18 8.27L14 12.14L14.18 18.02L10 15.77L5.82 18.02L6 12.14L2 8.27L7.91 7.26L10 2Z" fill="currentColor"/>
+                    </svg>
+                  </span>
+                {% endif %}
+                <span class="release-notes__list-text">{{ block.settings.text }}</span>
+              </li>
+            {% endfor %}
+          </ul>
+        {% endif %}
+
+        {% if section.settings.button_text != blank %}
+          <div class="release-notes__button-wrapper">
+            {% if section.settings.button_link != blank %}
+              <a href="{{ section.settings.button_link }}" class="release-notes__button">
+                {{ section.settings.button_text }}
+              </a>
+            {% else %}
+              <button class="release-notes__button" type="button">
+                {{ section.settings.button_text }}
+              </button>
+            {% endif %}
+          </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="release-notes__image-column">
+      {% if section.settings.image != blank %}
+        {{ section.settings.image | image_url: width: 1200 | image_tag: class: 'release-notes__image', loading: 'lazy' }}
+      {% else %}
+        {{ 'image' | placeholder_svg_tag: 'release-notes__image release-notes__image--placeholder' }}
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+{% stylesheet %}
+  .release-notes {
+    width: 100%;
+  }
+
+  .release-notes__wrapper {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    min-height: 500px;
+  }
+
+  .release-notes__wrapper--reversed {
+    direction: rtl;
+  }
+
+  .release-notes__wrapper--reversed > * {
+    direction: ltr;
+  }
+
+  .release-notes__text-column {
+    background-color: var(--rn-bg-color, #8B7D3C);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 40px;
+  }
+
+  .release-notes__text-content {
+    max-width: 520px;
+    width: 100%;
+  }
+
+  .release-notes__subtitle {
+    display: block;
+    font-size: 16px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    line-height: 19.2px;
+    text-transform: uppercase;
+    color: var(--rn-subtitle-color, #ffffff);
+    margin-bottom: 24px;
+  }
+
+  .release-notes__title {
+    font-family: "Orpheus Pro"; 
+    font-size: 32px;
+    font-weight: 400;
+    line-height: 35.2px;
+    color: var(--rn-title-color, #ffffff);
+    margin: 0 0 24px;
+  }
+
+  .release-notes__description {
+    max-width: 400px;
+    font-size: 16px;
+    line-height: 22.4px;
+    color: var(--rn-text-color, #ffffff);
+    margin-bottom: 24px;
+  }
+
+  .release-notes__description p {
+    margin: 0 0 16px;
+  }
+
+  .release-notes__description p:last-child {
+    margin-bottom: 0;
+  }
+
+  .release-notes__list {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 40px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .release-notes__list-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: var(--rn-text-color, #ffffff);
+    font-size: 0.95rem;
+  }
+
+  .release-notes__list-icon {
+    flex-shrink: 0;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .release-notes__list-icon img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+  }
+
+  .release-notes__list-icon--default {
+    color: var(--rn-list-icon-color, #ffffff);
+    opacity: 0.85;
+  }
+
+  .release-notes__list-text {
+    font-weight: 500;
+  }
+
+  .release-notes__button-wrapper {
+    margin-top: 40px;
+  }
+
+.release-notes__button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 32px;
+    font-size: 14px;
+    font-weight: 500;
+    text-transform: uppercase;
+    text-decoration: none;
+    border: 1px solid var(--rn-btn-border, #ffffff);
+    background-color: var(--rn-btn-bg, transparent);
+    color: var(--rn-btn-text, #ffffff);
+    cursor: pointer;
+    transition: opacity 0.2s ease;
+    height: 48px;
+}
+
+  .release-notes__button:hover {
+    opacity: 0.8;
+  }
+
+  .release-notes__image-column {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .release-notes__image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  .release-notes__image--placeholder {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  /* Tablet */
+  @media (max-width: 1023px) {
+    .release-notes__wrapper {
+      grid-template-columns: 1fr 1fr;
+      min-height: 400px;
+    }
+
+    .release-notes__text-column {
+      padding: 40px 28px;
+    }
+
+    .release-notes__title {
+      font-size: 2rem;
+    }
+  }
+
+  /* Mobile */
+  @media (max-width: 767px) {
+    .release-notes__subtitle {
+        font-size: 13px;
+    }
+    .release-notes__description {
+        font-size: 14px;
+        line-height: 19.6px;
+        letter-spacing: 0.4px;
+    }
+    .release-notes__list-text {
+        font-size: 14px;
+    }
+    .release-notes__button {
+        text-align: center;
+        width: 100%;
+    }
+    .release-notes__wrapper {
+      grid-template-columns: 1fr;
+      grid-template-rows: auto auto;
+    }
+    .release-notes__wrapper--reversed {
+      direction: ltr;
+    }
+    .release-notes__text-column {
+      order: 1;
+      padding: 32px 10px;
+    }
+    .release-notes__image-column {
+      order: 2;
+      min-height: 300px;
+    }
+    .release-notes__title {
+      font-size: 1.75rem;
+    }
+    .release-notes__text-content {
+      max-width: 100%;
+    }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Release Notes",
+  "tag": "section",
+  "class": "release-notes-section",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Layout"
+    },
+    {
+      "type": "checkbox",
+      "id": "reverse_columns",
+      "label": "Reverse column order (image left, text right)",
+      "default": false
+    },
+    {
+      "type": "header",
+      "content": "Image"
+    },
+    {
+      "type": "image_picker",
+      "id": "image",
+      "label": "Image"
+    },
+    {
+      "type": "header",
+      "content": "Text content"
+    },
+    {
+      "type": "text",
+      "id": "subtitle",
+      "label": "Subtitle",
+      "default": "DESIGN NOTES"
+    },
+    {
+      "type": "text",
+      "id": "title",
+      "label": "Title",
+      "default": "Crafted for Lasting Brilliance"
+    },
+    {
+      "type": "richtext",
+      "id": "content",
+      "label": "Content",
+      "default": "<p>Every detail of this ring is designed with balance, strength, and refined proportion.</p><p>The open four-prong setting allows maximum light performance while keeping the diamond secure for everyday wear.</p><p>Clean architectural lines highlight the stone and elevate its presence on the hand — a signature of thoughtful fine jewelry design.</p>"
+    },
+    {
+      "type": "header",
+      "content": "Button"
+    },
+    {
+      "type": "text",
+      "id": "button_text",
+      "label": "Button text",
+      "default": "ADD TO BAG - 1,626.00 USD"
+    },
+    {
+      "type": "url",
+      "id": "button_link",
+      "label": "Button link"
+    },
+    {
+      "type": "header",
+      "content": "Colors"
+    },
+    {
+      "type": "color",
+      "id": "text_bg_color",
+      "label": "Text column background",
+      "default": "#8B7D3C"
+    },
+    {
+      "type": "color",
+      "id": "text_color",
+      "label": "Text color",
+      "default": "#ffffff"
+    },
+    {
+      "type": "color",
+      "id": "subtitle_color",
+      "label": "Subtitle color",
+      "default": "#ffffff"
+    },
+    {
+      "type": "color",
+      "id": "title_color",
+      "label": "Title color",
+      "default": "#ffffff"
+    },
+    {
+      "type": "color",
+      "id": "list_icon_color",
+      "label": "List icon color (default icons)",
+      "default": "#ffffff"
+    },
+    {
+      "type": "color",
+      "id": "button_bg_color",
+      "label": "Button background",
+      "default": "#00000000"
+    },
+    {
+      "type": "color",
+      "id": "button_text_color",
+      "label": "Button text color",
+      "default": "#ffffff"
+    },
+    {
+      "type": "color",
+      "id": "button_border_color",
+      "label": "Button border color",
+      "default": "#ffffff"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "list_item",
+      "name": "List item",
+      "settings": [
+        {
+          "type": "image_picker",
+          "id": "icon",
+          "label": "Custom icon (optional)"
+        },
+        {
+          "type": "text",
+          "id": "text",
+          "label": "Text",
+          "default": "Feature item"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Release Notes",
+      "settings": {},
+      "blocks": [
+        {
+          "type": "list_item",
+          "settings": {
+            "text": "Gemologist reviewed"
+          }
+        },
+        {
+          "type": "list_item",
+          "settings": {
+            "text": "Precision stone selection"
+          }
+        },
+        {
+          "type": "list_item",
+          "settings": {
+            "text": "Engagement-focused craftsmanship"
+          }
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}
