@@ -31,7 +31,57 @@
       assign active_shape_name = block.settings.name
     endif
   endfor
+
+  assign matching_collection = section.settings.matching_collection
+  assign matching_title = section.settings.matching_title | default: 'Matching Bands'
+  assign matching_description = section.settings.matching_description
+  assign matching_link_label = section.settings.matching_link_label | strip
+  if matching_link_label == blank
+    assign matching_link_label = 'Explore more'
+  endif
 -%}
+
+{% if matching_collection != blank and matching_collection.products_count > 0 %}
+  {% capture matching_products_html %}
+    <div class="matching-products__inner">
+      <div class="matching-products__text">
+        <h2 class="matching-products__title">{{ matching_title }}</h2>
+        {% if matching_description != blank %}
+          <div class="matching-products__description">{{ matching_description }}</div>
+        {% endif %}
+        <a href="{{ matching_collection.url }}" class="matching-products__cta">
+          {{ matching_link_label | upcase }}
+        </a>
+      </div>
+
+      <div class="matching-products__carousel">
+        <div class="swiper matching-products__swiper" data-matching-products-swiper>
+          <div class="swiper-wrapper">
+            {% for product in matching_collection.products limit: 8 %}
+              <div class="swiper-slide">
+                {% render 'matching-product-card', product: product %}
+              </div>
+            {% endfor %}
+          </div>
+        </div>
+
+        <button type="button" class="matching-products__nav matching-products__nav--prev" aria-label="Previous" data-matching-products-prev>
+          <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle opacity="0.06" cx="16" cy="16" r="16" transform="matrix(-1 0 0 1 32 0)" fill="#131604"/>
+            <path d="M18.8 22.4L12.4 16L18.8 9.60001" stroke="#131604" stroke-opacity="0.8" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+
+        <button type="button" class="matching-products__nav matching-products__nav--next" aria-label="Next" data-matching-products-next>
+          <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle opacity="0.06" cx="16" cy="16" r="16" fill="#131604"/>
+            <path d="M13.2 22.4L19.6 16L13.2 9.60001" stroke="#131604" stroke-opacity="0.8" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+  {% endcapture %}
+{% endif %}
 
 <div class="breadcrumb full-width">
   <a href="{{ routes.root_url }}">Home</a> /
@@ -49,13 +99,13 @@
             <div class="swiper-slide">
               {% case media.media_type %}
                 {% when 'image' %}
-                  {% render 'image', class: 'product-image', image: media %}
+                  {% render 'image', class: 'product-gallery__image', image: media %}
                 {% when 'video' %}
-                  <div class="product-video">
+                  <div class="product-gallery__video">
                     {{ media | video_tag: autoplay: true, loop: true, muted: true, controls: false, playsinline: true }}
                   </div>
                 {% when 'external_video' %}
-                  <div class="product-video">
+                  <div class="product-gallery__video">
                     {{ media | external_video_tag: autoplay: true, loop: true, mute: true }}
                   </div>
               {% endcase %}
@@ -90,7 +140,7 @@
                   crop: 'center'
                 %}
                 {% if media.media_type == 'video' or media.media_type == 'external_video' %}
-                  <div class="thumb-play-icon">
+                  <div class="product-gallery__play-icon">
                     <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
                       <path d="M3 2L10 6L3 10V2Z" fill="#fff"/>
                     </svg>
@@ -103,20 +153,26 @@
       </div>
     </div>
 
+    {% if matching_products_html != blank %}
+      <div class="matching-products matching-products--desktop">
+        {{ matching_products_html }}
+      </div>
+    {% endif %}
+
     <aside class="product-info">
       {%- if displayed_product.collections != blank -%}
-        <p class="product_collection">{{ displayed_product.collections.first.title | upcase }}</p>
+        <p class="product-info__collection">{{ displayed_product.collections.first.title | upcase }}</p>
       {%- endif -%}
-      <h1 class="product_title">{{ displayed_product.title }}</h1>
-      <div class="product_reviews">
+      <h1 class="product-info__title">{{ displayed_product.title }}</h1>
+      <div class="product-info__reviews">
         {{ 'stars-reviews.svg' | inline_asset_content }}
         <p>{{ review_count }} reviews</p>
       </div>
-      <p class="product_price">
-        <span class="price">{{ displayed_product.price | money_with_currency }}</span> (SETTING ONLY)
+      <p class="product-info__price">
+        <span class="product-info__price-value">{{ displayed_product.price | money_with_currency }}</span> (SETTING ONLY)
       </p>
 
-      <div class="finantial-info">
+      <div class="product-info__financial">
         <p>Starting at $28/mo with</p>
         <a href="{{ routes.root_url }}" aria-label="affirm">
           <img
@@ -127,9 +183,9 @@
             loading="eager"
           >
         </a>
-        <a href="/pages/shipping" class="shipping-link">Prequalify now</a>
+        <a href="/pages/shipping" class="product-info__prequalify-link">Prequalify now</a>
       </div>
-      <p class="product_description">{{ displayed_product.description | strip_html }}</p>
+      <p class="product-info__description">{{ displayed_product.description | strip_html }}</p>
 
       {%- render 'divider' -%}
 
@@ -137,8 +193,8 @@
         {% form 'product', displayed_product %}
           {% assign current_variant = displayed_product.selected_or_first_available_variant %}
 
-          <div class="shape-content">
-            <div class="title">
+          <div class="product-form__shape">
+            <div class="product-form__heading">
               <strong>Shape:</strong>
               {%- for block in section.blocks -%}
                 {%- if block.type == 'shape' and block.settings.is_active -%}
@@ -147,7 +203,7 @@
               {%- endfor -%}
               {%- render 'icon-info' -%}
             </div>
-            <div class="shapes">
+            <div class="product-form__shape-list">
               {%- for block in section.blocks -%}
                 {%- if block.type == 'shape' -%}
                   <a
@@ -172,13 +228,13 @@
           </div>
           {%- render 'divider' -%}
 
-          <div class="metal-content">
-            <div class="title">
+          <div class="product-form__metal">
+            <div class="product-form__heading">
               <strong>Metal:</strong>
               <span data-selected-metal>{{ current_variant.option1 }}</span>
               {%- render 'icon-info' -%}
             </div>
-            <div class="metal-options">
+            <div class="product-form__metal-list">
               {%- for block in section.blocks -%}
                 {%- if block.type == 'metal_option' -%}
                   {%- assign metal = block.settings.metal_value -%}
@@ -209,8 +265,8 @@
 
           {%- render 'divider' -%}
 
-          <div class="carant-content">
-            <div class="title">
+          <div class="product-form__carat">
+            <div class="product-form__heading">
               <strong>Carat Weight:</strong>
               <span data-carat-display>1</span> ct
               {%- render 'icon-info' -%}
@@ -235,14 +291,14 @@
 
           {%- render 'divider' -%}
 
-          <div class="ring-content">
-            <div class="ring-content__row">
-              <div class="title">
+          <div class="product-form__ring">
+            <div class="product-form__ring-row">
+              <div class="product-form__heading">
                 <strong>Ring Size:</strong>
                 <span data-selected-ring-size>{{ current_variant.option2 }}</span>
                 {%- render 'icon-info' -%}
               </div>
-              <div class="ring-size">
+              <div class="product-form__ring-select">
                 <select data-ring-size-select>
                   {%- for size in ring_size_values -%}
                     <option
@@ -262,13 +318,13 @@
           <input type="hidden" name="id" value="{{ current_variant.id }}" data-variant-id>
           <input type="hidden" name="quantity" min="1" value="1">
 
-          <div class="product-actions">
-            <input class="add-to-cart" type="submit" value="ADD TO BAG">
-            <button class="btn-favorite" type="button" aria-label="Add to favorites">
+          <div class="product-form__actions">
+            <input class="product-form__submit" type="submit" value="ADD TO BAG">
+            <button class="product-form__favorite" type="button" aria-label="Add to favorites">
               {{ 'icon-favorites.svg' | inline_asset_content }}
             </button>
           </div>
-          <button class="make-inquiry" type="button">MAKE AN INQUIRY</button>
+          <button class="product-form__inquiry" type="button">MAKE AN INQUIRY</button>
         {% endform %}
 
         <div class="floating-cta" data-floating-cta>
@@ -276,20 +332,26 @@
         </div>
 
         {%- render 'divider' -%}
-        <div class="product-shipping">
+        <div class="product-info__shipping">
           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
             <path d="M24 11.181L21.3708 6.39588H18.7222V4.52209H2.17045V7.34837H0V8.7537H2.17045V10.0477H0V11.4531H2.17045V12.7199H0V14.1252H2.17045V15.5774H1.03058V16.9827H5.07317C5.19243 18.3784 6.3658 19.4779 7.79179 19.4779C9.21778 19.4779 10.3911 18.3784 10.5104 16.9827H15.3009C15.4201 18.3784 16.5935 19.4779 18.0195 19.4779C19.4455 19.4779 20.6189 18.3784 20.7381 16.9827H24V11.181ZM22.1095 10.6587H18.7222V7.80121H20.5395L22.1095 10.6587ZM7.79179 18.0725C7.06172 18.0725 6.46778 17.4786 6.46778 16.7485C6.46778 16.0184 7.06172 15.4245 7.79179 15.4245C8.52186 15.4245 9.11581 16.0184 9.11581 16.7485C9.11581 17.4786 8.52186 18.0725 7.79179 18.0725ZM15.5547 15.5774H10.2567C9.81754 14.6569 8.87784 14.0191 7.79184 14.0191C6.70584 14.0191 5.76614 14.6569 5.32702 15.5774H3.57578V14.1252H4.91868V12.7199H3.57578V11.4531H8.79113V10.0477H3.57578V8.7537H5.19974V7.34837H3.57578V5.92743H17.3168V14.1113C16.5383 14.3189 15.8956 14.8628 15.5547 15.5774ZM18.0195 18.0725C17.2895 18.0725 16.6955 17.4786 16.6955 16.7485C16.6955 16.0184 17.2895 15.4245 18.0195 15.4245C18.7496 15.4245 19.3436 16.0184 19.3436 16.7485C19.3436 17.4786 18.7496 18.0725 18.0195 18.0725ZM20.4844 15.5774C20.1434 14.8628 19.5008 14.3189 18.7222 14.1113V12.0641H19.9558V13.4226H21.3611V12.0641H22.5947V15.5774H20.4844Z" fill="#050505"/>
             <rect y="7.34375" width="5.21289" height="1.41724" fill="#706A38"/>
             <rect y="12.7018" width="4.94141" height="1.427" fill="#706A38"/>
             <rect y="10.0497" width="8.80176" height="1.40527" fill="#706A38"/>
           </svg>
-          <div class="product-shipping-info">
+          <div class="product-info__shipping-text">
             {{ section.settings.shipping_info }}
           </div>
         </div>
 
-        <div class="contact-details">
-          <button class="contact-btn">
+        {% if matching_products_html != blank %}
+          <div class="matching-products matching-products--mobile">
+            {{ matching_products_html }}
+          </div>
+        {% endif %}
+
+        <div class="product-contact">
+          <button class="product-contact__btn">
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" fill="none">
               <path d="M2.5 8.33337L10.2143 12.5L17.5 8.33337" stroke="#131604" stroke-opacity="0.8" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"/>
               <path d="M2.5 8.3921C2.5 7.83485 2.7785 7.31446 3.24217 7.00535L9.0755 3.11646C9.63533 2.74324 10.3647 2.74324 10.9245 3.11646L16.7578 7.00535C17.2215 7.31446 17.5 7.83485 17.5 8.3921V15.0001C17.5 15.9206 16.7538 16.6668 15.8333 16.6668H4.16667C3.24619 16.6668 2.5 15.9206 2.5 15.0001V8.3921Z" stroke="#131604" stroke-opacity="0.8" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"/>
@@ -308,7 +370,7 @@
           >
             <path d="M0.5 0V24" stroke="#131604" stroke-opacity="0.1"/>
           </svg>
-          <button class="contact-btn">
+          <button class="product-contact__btn">
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" fill="none">
               <path d="M17.5 10C17.5 14.1421 14.1421 17.5 10 17.5C8.52412 17.5 7.1478 17.0737 5.98747 16.3375L2.5 17.5L3.66249 14.0125C2.9263 12.8522 2.5 11.4759 2.5 10C2.5 5.85786 5.85786 2.5 10 2.5C14.1421 2.5 17.5 5.85786 17.5 10Z" stroke="#131604" stroke-opacity="0.8" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"/>
             </svg>
@@ -325,7 +387,7 @@
           >
             <path d="M0.5 0V24" stroke="#131604" stroke-opacity="0.1"/>
           </svg>
-          <button class="contact-btn">
+          <button class="product-contact__btn">
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" fill="none">
               <path d="M2.93531 6.1021C4.26404 11.4927 8.50729 15.736 13.8979 17.0647C15.8478 17.5453 17.5 15.8719 17.5 13.8636V12.7841C17.5 12.282 17.0921 11.8796 16.5923 11.8316C15.7116 11.747 14.8665 11.5405 14.074 11.2293L12.6497 12.6536C10.3331 11.545 8.45501 9.66691 7.34639 7.35031L8.77072 5.92599C8.45946 5.13353 8.253 4.28843 8.16838 3.40772C8.12036 2.90795 7.71799 2.5 7.21591 2.5H6.13636C4.12806 2.5 2.45466 4.15215 2.93531 6.1021Z" stroke="#131604" stroke-opacity="0.8" stroke-width="1.36364" stroke-linecap="round" stroke-linejoin="round"/>
             </svg>
@@ -362,7 +424,7 @@
         </div>
 
         <div class="product-benefits">
-          <div class="benefit">
+          <div class="product-benefits__item">
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" fill="none">
               <g clip-path="url(#clip0_1_328)">
                 <path d="M9.52734 0.457031C8.76172 1.23828 8.23047 1.67578 7.46094 2.16797C6.07812 3.04297 4.36328 3.63281 2.79297 3.76953C2.64453 3.78125 2.45312 3.80078 2.37109 3.8125L2.22656 3.83594L2.23438 8.83984L2.24609 13.8477L2.33984 14.0625C2.77344 15.0312 3.87109 16.1875 5.46875 17.3438C6.55078 18.1328 7.99609 19.0078 9.30859 19.6719L10 20.0195L10.6875 19.6719C12.9297 18.5391 14.9453 17.1758 16.2461 15.9141C16.957 15.2266 17.3984 14.6484 17.6602 14.0625L17.7539 13.8477L17.7656 8.83984L17.7734 3.83594L17.6289 3.8125C17.5469 3.80078 17.3594 3.78125 17.207 3.76953C15.6367 3.63281 13.9219 3.04297 12.5391 2.16797C11.7695 1.67578 11.2383 1.23828 10.4727 0.457031C10.2266 0.207031 10.0117 0 10 0C9.98828 0 9.77344 0.207031 9.52734 0.457031ZM10.3945 2.00391C12.0469 3.45312 14.0078 4.40625 16.1133 4.78125L16.582 4.86328L16.5938 9.21484L16.6016 13.5625L16.5 13.7617C16.3359 14.0938 15.9922 14.5234 15.5117 15C14.3359 16.168 12.5977 17.3594 10.3242 18.5547L10 18.7266L9.64062 18.5352C8.37109 17.8711 6.95703 17.0078 6.08594 16.3594C4.84766 15.4414 3.82422 14.4141 3.5 13.7617L3.39844 13.5625L3.40625 9.21484L3.41797 4.86328L3.88672 4.78125C5.99219 4.40625 7.95312 3.45312 9.60547 2.00391C9.80859 1.82422 9.98438 1.67969 10 1.67969C10.0156 1.67969 10.1914 1.82422 10.3945 2.00391Z" fill="#706A38"/>
@@ -376,7 +438,7 @@
             </svg>
             Lifetime Warranty
           </div>
-          <div class="benefit">
+          <div class="product-benefits__item">
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" fill="none">
               <g clip-path="url(#clip0_1_334)">
                 <path d="M14.9886 0.253906C14.1331 0.390625 13.4261 0.507812 13.4222 0.515625C13.4144 0.523438 13.3636 1.21094 13.305 2.05078C13.2073 3.41797 13.1878 3.58203 13.1214 3.65625L13.0472 3.73828L12.68 3.55078C11.0042 2.68359 9.01594 2.39453 7.12141 2.73438C4.41828 3.22266 2.07453 5 0.855783 7.49219C0.558908 8.09766 0.265939 8.98047 0.133127 9.67578C-0.00749819 10.4102 -0.0426544 11.6914 0.0589081 12.4453C0.531564 15.9922 3.08235 18.8633 6.53938 19.7461C7.88313 20.0898 9.555 20.0898 10.8675 19.7461C13.8909 18.9609 16.2191 16.6797 17.0902 13.6562C17.6761 11.6133 17.4378 9.23047 16.4495 7.32031L16.262 6.95312L16.3441 6.87891C16.4183 6.8125 16.5823 6.79297 17.9495 6.69922C18.7894 6.64062 19.4808 6.58594 19.4847 6.58203C19.5042 6.5625 20.0003 3.39453 20.0003 3.28125C20.0003 3.20312 19.6605 2.84375 18.4066 1.58984C16.9027 0.0859375 16.8089 0 16.68 0.00390625C16.6058 0.0078125 15.8441 0.117188 14.9886 0.253906ZM17.5355 2.47656L18.723 3.66406L18.6566 4.08984C18.6214 4.32031 18.5823 4.5625 18.5667 4.625C18.5472 4.73047 18.4769 4.66797 16.9105 3.10156C16.012 2.20312 15.2816 1.46094 15.2894 1.45703C15.3089 1.4375 16.1292 1.30078 16.2503 1.29297C16.3284 1.28906 16.5784 1.51953 17.5355 2.47656ZM17.5667 5.49219C17.5628 5.5 17.2855 5.52344 16.9573 5.55078L16.3558 5.59375L15.3831 4.625L14.4105 3.65234L14.43 3.33984C14.4456 3.16797 14.4652 2.89062 14.4808 2.71875L14.5042 2.41406L16.0394 3.94922C16.8831 4.79297 17.5706 5.48828 17.5667 5.49219ZM9.26203 3.82812C10.5316 3.93359 11.7698 4.35547 12.805 5.03516C13.0042 5.16797 13.1878 5.27344 13.2152 5.27344C13.2386 5.27344 13.3792 5.15625 13.5238 5.01172L13.7894 4.74609L14.5198 5.48047L15.2542 6.21094L14.9886 6.47656C14.8441 6.62109 14.7269 6.76172 14.7269 6.78516C14.7269 6.8125 14.8284 6.98828 14.9534 7.17969C15.5589 8.09766 15.9417 9.10938 16.1214 10.2461C16.2034 10.7773 16.2034 11.8398 16.1175 12.3828C15.6136 15.6289 13.2113 18.0859 9.94172 18.6992C9.44172 18.793 8.27375 18.8086 7.71906 18.7344C4.32453 18.2578 1.7425 15.6758 1.26594 12.2773C1.19172 11.7266 1.20735 10.5547 1.3011 10.0586C1.8636 7.06641 3.97297 4.77734 6.84797 4.04688C7.69953 3.82812 8.44563 3.76172 9.26203 3.82812Z" fill="#706A38"/>
@@ -390,7 +452,7 @@
             </svg>
             Complimentary Resizing
           </div>
-          <div class="benefit">
+          <div class="product-benefits__item">
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" fill="none">
               <g clip-path="url(#clip0_1_340)">
                 <path d="M17.1836 0.0585938C16.4805 0.199219 15.6445 0.558594 14.9336 1.02344C14.5703 1.26172 14.3477 1.46484 13.3125 2.49219L12.1094 3.6875L11.0156 3.57422C10.4141 3.51172 9.92188 3.44922 9.92188 3.4375C9.92188 3.42578 10.0117 3.32812 10.1172 3.22266C10.2266 3.11719 10.3125 3.01172 10.3125 2.99219C10.3125 2.9375 9.52344 2.14844 9.47266 2.14844C9.45312 2.14844 9.17969 2.40234 8.86719 2.71484L8.29688 3.28516L7.73438 3.22266C7.42188 3.19141 7.10156 3.15234 7.01562 3.14062L6.86719 3.11719L7.15234 2.82812L7.44141 2.53906L7.03125 2.12891C6.80469 1.90234 6.60547 1.71875 6.58203 1.71875C6.5625 1.71875 6.26172 2 5.91797 2.33984L5.29297 2.96094L4.1875 2.84375L3.07812 2.72266L2.30078 3.5C1.875 3.92578 1.52344 4.29297 1.52344 4.31641C1.52344 4.33594 2.98438 5.16406 4.76562 6.14844L8.00391 7.94141L7.9375 8.02734C7.90234 8.07812 7.62891 8.39453 7.33594 8.73438C6.60938 9.57812 5.85547 10.5195 5.14844 11.4609C4.82422 11.8906 4.54688 12.2617 4.53125 12.2773C4.51562 12.2969 3.95312 12.1328 3.28125 11.9141L2.05859 11.5156L1.03125 12.543C0.464844 13.1094 0 13.5938 0 13.6172C0 13.6406 0.535156 14.0312 1.19141 14.4883C1.84766 14.9492 2.39062 15.3359 2.40234 15.3477C2.41016 15.3633 2.25391 15.6445 2.05078 15.9727C1.84766 16.3008 1.66016 16.6367 1.63281 16.7148C1.60547 16.793 1.58203 16.9883 1.58203 17.1484C1.58594 17.5 1.70312 17.7852 1.95703 18.0469C2.19922 18.2969 2.49219 18.418 2.85156 18.418C3.01172 18.418 3.20703 18.3945 3.28516 18.3672C3.36328 18.3398 3.69922 18.1523 4.02734 17.9492C4.35547 17.7461 4.63672 17.5898 4.64844 17.5977C4.66406 17.6055 5.05078 18.1484 5.50781 18.8047C5.96875 19.4648 6.36328 20 6.38672 20C6.40625 20 6.89062 19.5352 7.45312 18.9727L8.48438 17.9414L8.08594 16.7188C7.86719 16.0469 7.70312 15.4844 7.72266 15.4688C7.73828 15.4531 8.07812 15.1953 8.47656 14.8984C9.39453 14.2109 10.3789 13.4258 11.25 12.6758C11.6289 12.3555 11.9648 12.0664 11.9961 12.043C12.0508 12 12.293 12.4219 13.8516 15.2344C14.8359 17.0156 15.6641 18.4766 15.6836 18.4766C15.707 18.4766 16.0742 18.125 16.5 17.6992L17.2773 16.918L17.1602 15.8125L17.0391 14.707L17.6602 14.082C18 13.7383 18.2812 13.4375 18.2812 13.418C18.2812 13.3945 18.0977 13.1953 17.8711 12.9688L17.4609 12.5586L17.1719 12.8477L16.8828 13.1367L16.8594 12.9648C16.8438 12.8711 16.8086 12.5469 16.7773 12.2461L16.7188 11.7031L17.2852 11.1328C17.5977 10.8203 17.8516 10.5469 17.8516 10.5273C17.8516 10.4766 17.0625 9.6875 17.0117 9.6875C16.9883 9.6875 16.8828 9.77344 16.7773 9.88281C16.6719 9.98828 16.5742 10.0781 16.5625 10.0781C16.5508 10.0781 16.4883 9.58594 16.4258 8.98438L16.3125 7.89062L17.5039 6.6875C18.5312 5.65625 18.7383 5.42969 18.9766 5.06641C19.4492 4.34375 19.7852 3.55469 19.9375 2.80469C20.0195 2.41406 20.0195 1.69141 19.9414 1.38672C19.7617 0.699219 19.3008 0.238281 18.6133 0.0585938C18.3281 -0.015625 17.5508 -0.015625 17.1836 0.0585938ZM18.4375 1.30078C18.6445 1.40234 18.7383 1.55078 18.7891 1.85547C18.8633 2.30469 18.6914 3.01562 18.3359 3.72266C17.9609 4.47656 17.8164 4.64844 16.2539 6.22656C13.5703 8.92969 11.8516 10.5664 10.3516 11.8398C8.23438 13.6328 5.8125 15.4023 3.48047 16.8516C3.01953 17.1367 2.86719 17.2148 2.82422 17.1836C2.79688 17.1602 2.78516 17.1211 2.80078 17.0938C3.12891 16.5039 4.54688 14.3555 5.28906 13.3203C7.52734 10.207 9.46875 8.01953 13.7734 3.74609C15.3477 2.18359 15.5273 2.03906 16.2695 1.66797C17.1992 1.20312 17.9766 1.07422 18.4375 1.30078ZM7.32422 4.39453C9.28125 4.60156 10.9023 4.78125 10.9336 4.78906C10.9727 4.80078 10.7656 5.03516 10.3477 5.46094C9.99219 5.82031 9.51172 6.31641 9.27344 6.56641L8.84766 7.01562L6.17969 5.53516C4.71484 4.72266 3.52344 4.03906 3.53906 4.01953C3.55078 3.99609 3.60938 3.98828 3.66406 4C3.72266 4.01172 5.37109 4.1875 7.32422 4.39453ZM15.6094 12.7461C15.8281 14.7695 15.9922 16.4414 15.9766 16.457C15.9609 16.4766 15.2812 15.2891 14.4648 13.8203L12.9844 11.1523L13.4375 10.7227C13.6836 10.4883 14.1758 10.0117 14.5312 9.66406C14.8828 9.3125 15.1836 9.03516 15.1953 9.04688C15.207 9.05859 15.3945 10.7227 15.6094 12.7461ZM3.08594 13.1289C3.41797 13.2383 3.70312 13.3398 3.71875 13.3555C3.73438 13.3711 3.60156 13.5938 3.42188 13.8555L3.09766 14.332L2.73047 14.0742C2.52734 13.9336 2.25 13.7383 2.11328 13.6406L1.86719 13.4688L2.13281 13.1992C2.28125 13.0508 2.41797 12.9297 2.44141 12.9297C2.46094 12.9297 2.75391 13.0195 3.08594 13.1289ZM6.87891 16.9414L7.08984 17.5781L6.81641 17.8516C6.60156 18.0664 6.53516 18.1133 6.5 18.0742C6.47266 18.0508 6.27734 17.7734 6.0625 17.4648L5.66797 16.9023L6.14453 16.5742C6.40625 16.3984 6.62891 16.2656 6.64453 16.2812C6.66016 16.2969 6.76562 16.5938 6.87891 16.9414Z" fill="#706A38"/>
@@ -403,7 +465,7 @@
             </svg>
             Free Express & Insured Shipping
           </div>
-          <div class="benefit">
+          <div class="product-benefits__item">
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" fill="none">
               <g clip-path="url(#clip0_1_345)">
                 <path d="M12.3436 1.19055V2.38196H12.9491H13.5546V1.19055V-0.000854492H12.9491H12.3436V1.19055Z" fill="#706A38"/>
@@ -491,12 +553,12 @@
     var variantIdInput = document.querySelector('[data-variant-id]');
     var selectedMetalSpan = document.querySelector('[data-selected-metal]');
     var selectedRingSizeSpan = document.querySelector('[data-selected-ring-size]');
-    var priceDisplay = document.querySelector('.product_price .price');
+    var priceDisplay = document.querySelector('.product-info__price .product-info__price-value');
     var metalButtons = document.querySelectorAll('.metal-btn');
     var ringSizeSelect = document.querySelector('[data-ring-size-select]');
     var caratSlider = document.querySelector('[data-carat-slider]');
     var caratDisplay = document.querySelector('[data-carat-display]');
-    var addToCartBtn = document.querySelector('.add-to-cart');
+    var addToCartBtn = document.querySelector('.product-form__submit');
 
     var selectedMetal = selectedMetalSpan ? selectedMetalSpan.textContent.trim() : '';
     var selectedRingSize = ringSizeSelect ? ringSizeSelect.value : '';
@@ -658,6 +720,36 @@
   });
 </script>
 
+<script>
+  (function () {
+    function initMatchingSwipers() {
+      document.querySelectorAll('[data-matching-products-swiper]').forEach(function (swiperEl) {
+        if (swiperEl.matchingSwiper) return;
+        if (typeof Swiper === 'undefined') return;
+
+        var container = swiperEl.closest('.matching-products');
+        if (!container) return;
+
+        var prevBtn = container.querySelector('[data-matching-products-prev]');
+        var nextBtn = container.querySelector('[data-matching-products-next]');
+
+        swiperEl.matchingSwiper = new Swiper(swiperEl, {
+          slidesPerView: 'auto',
+          spaceBetween: 10,
+          navigation: {
+            prevEl: prevBtn,
+            nextEl: nextBtn,
+          },
+        });
+      });
+    }
+
+    document.addEventListener('DOMContentLoaded', initMatchingSwipers);
+    document.addEventListener('shopify:section:load', initMatchingSwipers);
+    initMatchingSwipers();
+  })();
+</script>
+
 {%- stylesheet -%}
   /* ===================== Breadcrumb ===================== */
   .breadcrumb {
@@ -690,17 +782,17 @@
     overflow: hidden;
   }
 
-  .product-gallery__swiper .swiper-slide .product-image,
-  .product-gallery__swiper .swiper-slide .product-video {
+  .product-gallery__swiper .swiper-slide .product-gallery__image,
+  .product-gallery__swiper .swiper-slide .product-gallery__video {
     width: 100%;
     height: 100%;
     overflow: hidden;
     position: relative;
   }
 
-  .product-gallery__swiper .swiper-slide .product-image img,
-  .product-gallery__swiper .swiper-slide .product-video video,
-  .product-gallery__swiper .swiper-slide .product-video iframe {
+  .product-gallery__swiper .swiper-slide .product-gallery__image img,
+  .product-gallery__swiper .swiper-slide .product-gallery__video video,
+  .product-gallery__swiper .swiper-slide .product-gallery__video iframe {
     display: block;
     width: 100%;
     height: 100%;
@@ -714,7 +806,7 @@
     position: relative;
   }
 
-  .thumb-play-icon {
+  .product-gallery__play-icon {
     position: absolute;
     top: 50%;
     left: 50%;
@@ -759,7 +851,7 @@
     padding: 0;
   }
 
-  .product_collection {
+  .product-info__collection {
     color: rgba(19, 22, 4, 0.6);
     font-size: 14px;
     font-style: normal;
@@ -769,7 +861,7 @@
     margin-bottom: 8px;
   }
 
-  .product_title {
+  .product-info__title {
     color: #131604;
     font-family: 'Orpheus Pro';
     font-size: 28px;
@@ -779,7 +871,7 @@
     max-width: 85%;
   }
 
-  .product_reviews {
+  .product-info__reviews {
     display: flex;
     align-items: center;
     gap: 8px;
@@ -791,7 +883,7 @@
     margin: 14px 0 14px;
   }
 
-  .product_price {
+  .product-info__price {
     color: rgba(19, 22, 4, 0.8);
     font-family: Inter;
     font-size: 11px;
@@ -800,7 +892,7 @@
     line-height: normal;
     letter-spacing: 1px;
 
-    span {
+    .product-info__price-value {
       color: #131604;
       font-size: 14px;
       font-style: normal;
@@ -809,7 +901,7 @@
       letter-spacing: 0.4px;
     }
   }
-  .finantial-info {
+  .product-info__financial {
     display: flex;
     align-items: flex-end;
     flex-wrap: wrap;
@@ -819,11 +911,11 @@
     font-weight: 300;
     margin-bottom: 14px;
   }
-  .finantial-info p {
+  .product-info__financial p {
     margin: 0;
     line-height: 14px;
   }
-  .finantial-info a[aria-label='affirm'] {
+  .product-info__financial a[aria-label='affirm'] {
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -831,13 +923,13 @@
     height: 16px;
     flex-shrink: 0;
   }
-  .finantial-info a[aria-label='affirm'] img {
+  .product-info__financial a[aria-label='affirm'] img {
     display: block;
     width: 100%;
     height: 100%;
     object-fit: contain;
   }
-  .shipping-link {
+  .product-info__prequalify-link {
     color: #131604;
     font-size: 12px;
     font-style: normal;
@@ -851,7 +943,7 @@
     text-underline-position: from-font;
   }
 
-  .product_description {
+  .product-info__description {
     color: rgba(19, 22, 4, 0.8);
     font-size: 14px;
     font-style: normal;
@@ -861,20 +953,20 @@
     margin-bottom: 20px;
   }
 
-  .shape-content,
-  .metal-content,
-  .carant-content,
-  .ring-content {
+  .product-form__shape,
+  .product-form__metal,
+  .product-form__carat,
+  .product-form__ring {
     display: flex;
     gap: 12px;
     flex-direction: column;
     margin: 16px 0;
   }
 
-  .metal-content .title,
-  .shape-content .title,
-  .carant-content .title,
-  .ring-content .title {
+  .product-form__metal .product-form__heading,
+  .product-form__shape .product-form__heading,
+  .product-form__carat .product-form__heading,
+  .product-form__ring .product-form__heading {
     color: rgba(19, 22, 4, 0.8);
     font-size: 14px;
     display: flex;
@@ -886,7 +978,7 @@
     }
   }
 
-  .shape-content .shapes {
+  .product-form__shape .product-form__shape-list {
     display: flex;
     max-width: 95%;
     width: 100%;
@@ -920,7 +1012,7 @@
   }
 
   /* ===================== Metal Options ===================== */
-  .metal-options {
+  .product-form__metal-list {
     display: flex;
     gap: 10px;
     flex-wrap: wrap;
@@ -1041,21 +1133,21 @@
   }
 
   /* ===================== Ring Size ===================== */
-  .ring-content__row {
+  .product-form__ring-row {
     display: flex;
     align-items: center;
     gap: 16px;
   }
 
-  .ring-content__row .title {
+  .product-form__ring-row .product-form__heading {
     flex-shrink: 0;
   }
 
-  .ring-size {
+  .product-form__ring-select {
     flex: 1;
   }
 
-  .ring-size select {
+  .product-form__ring-select select {
     width: 100%;
     padding: 8px 32px 8px 0;
     border: none !important;
@@ -1074,14 +1166,14 @@
   }
 
   /* ===================== Product Actions ===================== */
-  .product-actions {
+  .product-form__actions {
     display: flex;
     gap: 12px;
     align-items: stretch;
     margin-bottom: 10px;
   }
 
-  .add-to-cart {
+  .product-form__submit {
     display: flex;
     height: 48px;
     padding: 0 32px;
@@ -1098,12 +1190,12 @@
     cursor: pointer;
   }
 
-  .add-to-cart:disabled {
+  .product-form__submit:disabled {
     opacity: 0.5;
     cursor: not-allowed;
   }
 
-  .btn-favorite {
+  .product-form__favorite {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -1116,16 +1208,16 @@
     transition: border-color 0.2s ease;
   }
 
-  .btn-favorite:hover {
+  .product-form__favorite:hover {
     border-color: rgba(19, 22, 4, 0.5) !important;
   }
 
-  .btn-favorite svg {
+  .product-form__favorite svg {
     width: 20px;
     height: 20px;
   }
 
-  .make-inquiry {
+  .product-form__inquiry {
     display: flex;
     height: 48px;
     padding: 0 32px;
@@ -1144,17 +1236,17 @@
     margin-bottom: 20px;
   }
 
-  .product-shipping {
+  .product-info__shipping {
     display: flex;
     gap: 12px;
     align-items: flex-start;
     margin: 20px 0 20px;
   }
 
-  .product-shipping svg {
+  .product-info__shipping svg {
     flex-shrink: 0;
   }
-  .product-shipping-info {
+  .product-info__shipping-text {
     display: flex;
     flex-direction: column;
     align-items: flex-start;
@@ -1166,7 +1258,7 @@
       font-weight: 400;
     }
   }
-  .product-shipping-info p:last-child {
+  .product-info__shipping-text p:last-child {
     font-weight: 300;
     color: rgba(19, 22, 4, 0.7);
     line-height: 21px;
@@ -1180,7 +1272,7 @@
       text-underline-offset: auto;
     }
   }
-  .contact-details {
+  .product-contact {
     display: flex;
     padding: 16px 24px;
     justify-content: space-between;
@@ -1188,7 +1280,7 @@
     border: 1px solid var(--border-light, rgba(19, 22, 4, 0.1));
     background: var(--bg-light, #f8f5ea);
   }
-  .contact-details .contact-btn {
+  .product-contact .product-contact__btn {
     display: flex;
     gap: 8px;
     align-items: center;
@@ -1198,7 +1290,7 @@
     transition: opacity 0.2s ease;
   }
 
-  .contact-details .contact-btn:hover {
+  .product-contact .product-contact__btn:hover {
     opacity: 0.75;
   }
 
@@ -1281,10 +1373,154 @@
     font-size: 14px;
     font-weight: 500;
   }
-  .product-benefits .benefit {
+  .product-benefits__item {
     display: flex;
     gap: 12px;
     align-items: flex-start;
+  }
+
+  /* ===================== Matching Products ===================== */
+  .matching-products {
+    background: var(--bg-light, #f8f5ea);
+    padding: 40px 32px;
+    width: 100%;
+    border: 1px solid var(--border-light, rgba(19, 22, 4, 0.10));
+  }
+
+  .matching-products--mobile {
+    display: none;
+  }
+
+  .matching-products__inner {
+    display: flex;
+    align-items: center;
+    gap: 32px;
+  }
+
+  .matching-products__text {
+    flex: 0 0 280px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .matching-products__title {
+    font-family: 'Orpheus Pro', serif;
+    font-size: 20px;
+    font-weight: 400;
+    line-height: 22px;
+    color: #131604;
+    margin: 0;
+  }
+
+  .matching-products__description {
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 19.6px;
+    color: rgba(19, 22, 4, 0.8);
+    letter-spacing: 0.4px;
+  }
+
+  .matching-products__description p {
+    margin: 0;
+  }
+
+  .matching-products__cta {
+    font-size: 12px;
+    font-weight: 500;
+    color: #131604;
+    text-decoration: underline;
+    text-underline-offset: 4px;
+    text-transform: uppercase;
+    margin-top: 8px;
+  }
+
+  .matching-products__carousel {
+    position: relative;
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+  }
+
+  .matching-products__swiper {
+    width: 100%;
+    overflow: visible;
+  }
+
+  .matching-products__swiper .swiper-slide {
+    width: 220px;
+    height: auto;
+  }
+
+  .matching-card {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .matching-card__image-link {
+    display: block;
+    width: 100%;
+    height: 280px;
+    background: #e8e4d6;
+    overflow: hidden;
+  }
+
+  .matching-card__image {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    display: block;
+  }
+
+  .matching-card__info {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 6px;
+  }
+
+  .matching-card__title {
+    margin: 0;
+  }
+
+  .matching-card__title a {
+    font-size: 16px;
+    color: #131604;
+    font-weight: 400;
+    text-decoration: none;
+  }
+
+  .matching-card__price {
+    font-size: 14px;
+    color: rgba(19, 22, 4, 0.80);
+    letter-spacing: 0.4px;
+    margin: 0;
+  }
+
+  .matching-products__nav {
+    position: absolute;
+    top: 38%;
+    transform: translateY(-50%) scale(0.75);
+    z-index: 2;
+    width: 32px;
+    height: 32px;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .matching-products__nav--prev {
+    left: 0;
+  }
+
+  .matching-products__nav--next {
+    right: 0;
   }
 
   /* ===================== Mobile (max 767px) ===================== */
@@ -1341,6 +1577,41 @@
       height: 100%;
       object-fit: cover;
     }
+
+    /* Matching Products — mobile */
+    .matching-products__description p,
+    .matching-products--desktop {
+      display: none;
+    }
+    .matching-products--mobile {
+      display: block;
+    }
+    .matching-products--mobile {
+      width: 100vw;
+      margin-left: -10px;
+      margin-bottom: 20px;
+      padding: 32px 16px;
+    }
+    .matching-products__inner {
+      flex-direction: column;
+      align-items: center;
+      gap: 20px;
+    }
+    .matching-products__carousel {
+      width: 100%;
+      flex: none;
+    }
+    .matching-products__text {
+      flex: none;
+      align-items: center;
+      text-align: center;
+    }
+    .matching-products__swiper .swiper-slide {
+      width: 180px;
+    }
+    .matching-card__image-link {
+      height: 208px;
+    }
   }
 
   /* ===================== Tablet (768px - 1279px) ===================== */
@@ -1359,6 +1630,17 @@
     }
     .product-gallery__swiper .swiper-wrapper .swiper-slide {
       width: 100% !important;
+    }
+
+    /* Matching Products — tablet */
+    .matching-products {
+      padding: 40px 0;
+    }
+    .matching-products__swiper .swiper-slide {
+      width: 200px;
+    }
+    .matching-card__image-link {
+      height: 260px;
     }
   }
 
@@ -1386,6 +1668,17 @@
     .product-info {
       position: sticky;
       top: 130px;
+      grid-row: 1 / 3;
+      grid-column: 2;
+    }
+
+    /* Matching Products — desktop */
+    .matching-products--desktop {
+      grid-column: 1;
+      grid-row: 2;
+    }
+    .matching-products__swiper .swiper-wrapper {
+      justify-content: flex-end;
     }
   }
 
@@ -1451,6 +1744,29 @@
       "id": "shipping_info",
       "label": "Shipping & delivery info",
       "default": "<p><strong>Estimated Delivery: May 14, 2026</strong></p><p>Your ring is crafted to order and delivered via fully insured express shipping. Need it sooner? <em>Priority crafting options are available.</em></p>"
+    },
+    {
+      "type": "collection",
+      "id": "matching_collection",
+      "label": "Matching products collection"
+    },
+    {
+      "type": "text",
+      "id": "matching_title",
+      "label": "Matching products title",
+      "default": "Matching Bands"
+    },
+    {
+      "type": "richtext",
+      "id": "matching_description",
+      "label": "Matching products description",
+      "default": "<p>When you purchase an engagement ring and add the matching ladies\u2019 band at the same time, you receive 20% preferred pricing on the band.</p>"
+    },
+    {
+      "type": "text",
+      "id": "matching_link_label",
+      "label": "Matching products CTA label",
+      "default": "Explore more wedding bands"
     }
   ],
   "blocks": [

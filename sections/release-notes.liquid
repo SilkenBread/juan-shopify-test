@@ -26,7 +26,7 @@
           <div class="release-notes__description">{{ section.settings.content }}</div>
         {% endif %}
 
-        {% assign list_blocks = section.blocks | where: "type", "list_item" %}
+        {% assign list_blocks = section.blocks | where: 'type', 'list_item' %}
         {% if list_blocks.size > 0 %}
           <ul class="release-notes__list">
             {% for block in list_blocks %}
@@ -66,7 +66,11 @@
 
     <div class="release-notes__image-column">
       {% if section.settings.image != blank %}
-        {{ section.settings.image | image_url: width: 1200 | image_tag: class: 'release-notes__image', loading: 'lazy' }}
+        {{
+          section.settings.image
+          | image_url: width: 1200
+          | image_tag: class: 'release-notes__image', loading: 'lazy'
+        }}
       {% else %}
         {{ 'image' | placeholder_svg_tag: 'release-notes__image release-notes__image--placeholder' }}
       {% endif %}
@@ -94,7 +98,7 @@
   }
 
   .release-notes__text-column {
-    background-color: var(--rn-bg-color, #8B7D3C);
+    background-color: var(--rn-bg-color, #8b7d3c);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -118,7 +122,7 @@
   }
 
   .release-notes__title {
-    font-family: "Orpheus Pro"; 
+    font-family: 'Orpheus Pro';
     font-size: 32px;
     font-weight: 400;
     line-height: 35.2px;
@@ -187,7 +191,7 @@
     margin-top: 40px;
   }
 
-.release-notes__button {
+  .release-notes__button {
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -202,7 +206,7 @@
     cursor: pointer;
     transition: opacity 0.2s ease;
     height: 48px;
-}
+  }
 
   .release-notes__button:hover {
     opacity: 0.8;
@@ -245,19 +249,19 @@
   /* Mobile */
   @media (max-width: 767px) {
     .release-notes__subtitle {
-        font-size: 13px;
+      font-size: 13px;
     }
     .release-notes__description {
-        font-size: 14px;
-        line-height: 19.6px;
-        letter-spacing: 0.4px;
+      font-size: 14px;
+      line-height: 19.6px;
+      letter-spacing: 0.4px;
     }
     .release-notes__list-text {
-        font-size: 14px;
+      font-size: 14px;
     }
     .release-notes__button {
-        text-align: center;
-        width: 100%;
+      text-align: center;
+      width: 100%;
     }
     .release-notes__wrapper {
       grid-template-columns: 1fr;
