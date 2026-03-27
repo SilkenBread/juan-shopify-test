@@ -196,7 +196,11 @@
       ],
       "settings": {
         "fallback_product": "emerald-cut-solitare-engagement-ring",
-        "shipping_info": "<p><strong>Estimated Delivery: May 14, 2026</strong></p><p>Your ring is crafted to order and delivered via fully insured express shipping. Need it sooner? <a href=\"/policies/privacy-policy\" title=\"Privacy Policy\">Priority crafting options are available.</a></p>"
+        "shipping_info": "<p><strong>Estimated Delivery: May 14, 2026</strong></p><p>Your ring is crafted to order and delivered via fully insured express shipping. Need it sooner? <a href=\"/policies/privacy-policy\" title=\"Privacy Policy\">Priority crafting options are available.</a></p>",
+        "matching_collection": "wedding",
+        "matching_title": "Matching Bands",
+        "matching_description": "<p>When you purchase an engagement ring and add the matching ladies’ band at the same time, you receive 20% preferred pricing on the band.</p>",
+        "matching_link_label": "Explore more wedding bands"
       }
     },
     "product-recommendations": {
@@ -301,6 +305,12 @@
         "button_bg_color": "#8b7d3c",
         "button_text_color": "#fefdfc",
         "button_border_color": "rgba(0,0,0,0)"
+      }
+    },
+    "reviews": {
+      "type": "customer-reviews",
+      "settings": {
+        "product": "emerald-cut-solitare-engagement-ring"
       }
     },
     "faqs": {
@@ -451,6 +461,7 @@
     "product-recommendations",
     "brand-history",
     "trust-quality",
+    "reviews",
     "faqs",
     "trust-badges",
     "follow-us"

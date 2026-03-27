@@ -1,0 +1,378 @@
+{%- liquid
+  assign product = section.settings.product
+-%}
+
+<h2 class="customer_reviews__title">What Our Client Say</h2>
+
+<div class="review_header">
+  <div class="rating_summary">
+    <div class="rating_average">
+      <div class="rating_value">{{ product.metafields.custom.average_rating.value }}</div>
+      <div class="rating_total">({{ product.metafields.custom.review_count.value }} Reviews)</div>
+    </div>
+    {{ 'stars-reviews-big.svg' | inline_asset_content }}
+    <a class="leave_review_link" href="">Leave a Review</a>
+  </div>
+
+  {% if product.media.size > 0 %}
+    <div class="review_images">
+      <div class="swiper review_images__swiper" data-review-images-swiper>
+        <div class="swiper-wrapper">
+          {% for media in product.media limit: 4 %}
+            <div class="swiper-slide">
+              {{ media | image_url: width: 200, height: 200, crop: 'center' | image_tag: loading: 'lazy' }}
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  {% endif %}
+</div>
+
+{% if product.metafields.custom.customer_reviews %}
+  {%- assign reviews = product.metafields.custom.customer_reviews.value -%}
+
+  <div class="review_sort_wrapper">
+    <div class="review_sort" data-review-sort>
+      <span>Sort: Highest Rating</span>
+      <svg width="12" height="7" viewBox="0 0 12 7" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M1 1L6 6L11 1" stroke="#131604" stroke-opacity="0.8" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </div>
+  </div>
+
+  {% render 'divider' %}
+
+  <div class="review_list" data-reviews-list>
+    {% for review in reviews %}
+      <div
+        class="review_card"
+        data-review-card
+        {% if forloop.index > 4 %}
+          style="display: none;"
+        {% endif %}
+      >
+        <div class="review_card__header">
+          <div class="review_card__left">
+            <div class="review_card__verified">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+                <path fill-rule="evenodd" clip-rule="evenodd" d="M12 21C13.1819 21 14.3522 20.7672 15.4442 20.3149C16.5361 19.8626 17.5282 19.1997 18.364 18.364C19.1997 17.5282 19.8626 16.5361 20.3149 15.4442C20.7672 14.3522 21 13.1819 21 12C21 10.8181 20.7672 9.64778 20.3149 8.55585C19.8626 7.46392 19.1997 6.47177 18.364 5.63604C17.5282 4.80031 16.5361 4.13738 15.4442 3.68508C14.3522 3.23279 13.1819 3 12 3C9.61305 3 7.32387 3.94821 5.63604 5.63604C3.94821 7.32387 3 9.61305 3 12C3 14.3869 3.94821 16.6761 5.63604 18.364C7.32387 20.0518 9.61305 21 12 21ZM11.768 15.64L16.768 9.64L15.232 8.36L10.932 13.519L8.707 11.293L7.293 12.707L10.293 15.707L11.067 16.481L11.768 15.64Z" fill="#706A38"/>
+              </svg>
+              <span>Verified User</span>
+            </div>
+            {{ 'stars-reviews.svg' | inline_asset_content }}
+            <h3 class="review_card__title">"{{ review.title.value }}"</h3>
+            <p class="review_card__description">{{ review.description.value }}</p>
+          </div>
+          <div class="review_card__date">{{ review.date.value | date: '%b %-d, %Y' }}</div>
+        </div>
+        <div class="review_card__date--mobile">{{ review.date.value | date: '%b %-d, %Y' }}</div>
+      </div>
+      {% render 'divider' %}
+    {% endfor %}
+  </div>
+  {% if reviews.size > 4 %}
+    <div class="review_show_more_wrapper">
+      <button class="review_show_more" data-review-show-more>SHOW MORE</button>
+    </div>
+  {% endif %}
+{% endif %}
+
+{%- stylesheet -%}
+  .customer_reviews {
+    display: flex;
+    padding: 80px 90px;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 32px;
+  }
+  .customer_reviews__title {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    color: #131604;
+    text-align: center;
+    font-family: 'Orpheus Pro';
+    font-size: 32px;
+    font-style: normal;
+    font-weight: 400;
+    line-height: 35.2px;
+  }
+
+  /* Header: rating + images */
+  .review_header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    width: 100%;
+    gap: 40px;
+  }
+  .rating_summary {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    flex-shrink: 0;
+  }
+  .rating_average {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+  .rating_average .rating_value {
+    color: #131604;
+    font-size: 28px;
+    font-style: normal;
+    font-weight: 500;
+    line-height: 28px;
+  }
+  .leave_review_link,
+  .rating_average .rating_total {
+    color: rgba(19, 22, 4, 0.8);
+    font-size: 14px;
+    font-style: normal;
+    font-weight: 400;
+    line-height: 19.6px;
+    letter-spacing: 0.4px;
+  }
+  .leave_review_link {
+    margin-top: 16px;
+    text-decoration-line: underline;
+    text-decoration-style: solid;
+    text-decoration-skip-ink: none;
+    text-decoration-thickness: auto;
+    text-underline-offset: auto;
+    text-underline-position: from-font;
+  }
+
+  /* Images carousel */
+  .review_images {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+  }
+  .review_images__swiper {
+    margin-left: auto;
+    width: auto;
+    max-width: 100%;
+  }
+  .review_images__swiper .swiper-wrapper {
+    justify-content: flex-end;
+  }
+  .review_images__swiper .swiper-slide {
+    width: 144px;
+    height: 150px;
+    flex-shrink: 0;
+    overflow: hidden;
+  }
+  .review_images__swiper .swiper-slide img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  /* Sort */
+  .review_sort_wrapper {
+    display: flex;
+    justify-content: flex-end;
+    width: 100%;
+  }
+  .review_sort {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    color: rgba(19, 22, 4, 0.8);
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 19.6px;
+    letter-spacing: 0.4px;
+  }
+
+  /* Review list */
+  .review_list {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+  }
+  .review_card {
+    padding: 32px 0;
+  }
+  .review_card:first-child {
+    margin-top: -32px;
+  }
+  .review_card__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    width: 100%;
+  }
+  .review_card__left {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    flex: 1;
+  }
+  .review_card__verified {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #131604;
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 19.6px;
+  }
+  .review_card__title {
+    color: #131604;
+    font-size: 16px;
+    font-weight: 500;
+    line-height: 24px;
+  }
+  .review_card__description {
+    color: rgba(19, 22, 4, 0.8);
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 19.6px;
+    letter-spacing: 0.4px;
+    margin: 0;
+  }
+  .review_card__date {
+    color: rgba(19, 22, 4, 0.8);
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 19.6px;
+    letter-spacing: 0.4px;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .review_card__date--mobile {
+    display: none;
+  }
+
+  /* Show more */
+  .review_show_more_wrapper {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+  }
+  .review_show_more {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 14px 48px;
+    border: 1px solid #131604 !important;
+    background: transparent;
+    color: #131604;
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 16.8px;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s;
+  }
+  .review_show_more:hover {
+    background: #131604;
+    color: #fff;
+  }
+
+  /* Mobile */
+  @media (max-width: 767px) {
+    .customer_reviews {
+      padding: 50px 10px;
+      gap: 16px;
+    }
+    .review_header {
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+    }
+    .rating_summary {
+      align-items: center;
+    }
+    .review_images {
+      width: 100%;
+    }
+    .review_images__swiper {
+      margin-left: 0;
+      width: 100%;
+    }
+    .review_images__swiper .swiper-wrapper {
+      justify-content: flex-start;
+    }
+    .review_images__swiper .swiper-slide {
+      width: 96px;
+      height: 100px;
+    }
+    .review_card {
+      padding: 10px 0;
+    }
+    .review_card:first-child {
+      margin-top: 0;
+    }
+    .review_card__header {
+      flex-direction: column;
+    }
+    .review_card__date {
+      display: none;
+    }
+    .review_card__date--mobile {
+      display: block;
+      margin-top: 12px;
+      color: rgba(19, 22, 4, 0.8);
+      font-size: 14px;
+      font-weight: 400;
+      line-height: 19.6px;
+      letter-spacing: 0.4px;
+    }
+    .review_show_more {
+      width: 100%;
+    }
+  }
+{%- endstylesheet -%}
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    /* Swiper for product images */
+    var reviewSwiperEl = document.querySelector('[data-review-images-swiper]');
+    if (reviewSwiperEl && typeof Swiper !== 'undefined') {
+      new Swiper(reviewSwiperEl, {
+        slidesPerView: 'auto',
+        spaceBetween: 8,
+      });
+    }
+
+    /* Show more reviews */
+    var showMoreBtn = document.querySelector('[data-review-show-more]');
+    if (showMoreBtn) {
+      showMoreBtn.addEventListener('click', function () {
+        var hiddenCards = document.querySelectorAll('[data-review-card][style*="display: none"]');
+        hiddenCards.forEach(function (card) {
+          card.style.display = '';
+        });
+        showMoreBtn.style.display = 'none';
+      });
+    }
+  });
+</script>
+
+{% schema %}
+{
+  "name": "Customer Reviews",
+  "tag": "section",
+  "class": "customer_reviews",
+  "settings": [
+    {
+      "type": "product",
+      "id": "product",
+      "label": "Product"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Customer Reviews",
+      "settings": {}
+    }
+  ]
+}
+{% endschema %}
