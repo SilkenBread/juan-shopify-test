@@ -71,7 +71,6 @@
       {% render 'divider' %}
     {% endfor %}
   </div>
-
   {% if reviews.size > 4 %}
     <div class="review_show_more_wrapper">
       <button class="review_show_more" data-review-show-more>SHOW MORE</button>
@@ -262,13 +261,12 @@
     justify-content: center;
     align-items: center;
     padding: 14px 48px;
-    border: 1px solid #131604;
+    border: 1px solid #131604 !important;
     background: transparent;
     color: #131604;
-    font-size: 12px;
+    font-size: 14px;
     font-weight: 500;
     line-height: 16.8px;
-    letter-spacing: 1.6px;
     text-transform: uppercase;
     cursor: pointer;
     transition: background 0.2s, color 0.2s;
