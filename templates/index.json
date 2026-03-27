@@ -235,6 +235,74 @@
         "products_limit": 8
       }
     },
+    "brand-history": {
+      "type": "release-notes",
+      "blocks": {
+        "list_item_Jjkxbe": {
+          "type": "list_item",
+          "settings": {
+            "icon": "shopify://shop_images/famicons_diamond-outline.webp",
+            "text": "Gemologist reviewed"
+          }
+        },
+        "list_item_8XC8ac": {
+          "type": "list_item",
+          "settings": {
+            "icon": "shopify://shop_images/famicons_diamond-outline.webp",
+            "text": "Precision stone selection"
+          }
+        },
+        "list_item_yxfXbM": {
+          "type": "list_item",
+          "settings": {
+            "icon": "shopify://shop_images/famicons_diamond-outline.webp",
+            "text": "Engagement-focused craftsmanship"
+          }
+        }
+      },
+      "block_order": [
+        "list_item_Jjkxbe",
+        "list_item_8XC8ac",
+        "list_item_yxfXbM"
+      ],
+      "settings": {
+        "reverse_columns": false,
+        "image": "shopify://shop_images/big-ring-1.avif",
+        "subtitle": "DESIGN NOTES",
+        "title": "Crafted for Lasting Brilliance",
+        "content": "<p>Every detail of this ring is designed with balance, strength, and refined proportion.</p><p>The open four-prong setting allows maximum light performance while keeping the diamond secure for everyday wear.</p><p>Clean architectural lines highlight the stone and elevate its presence on the hand — a signature of thoughtful fine jewelry design.</p>",
+        "button_text": "ADD TO BAG - 1,626.00 USD",
+        "button_link": "shopify://products/emerald-cut-solitare-engagement-ring",
+        "text_bg_color": "#8b7d3c",
+        "text_color": "#fefdfc",
+        "subtitle_color": "#fdf299",
+        "title_color": "#fefdfc",
+        "list_icon_color": "#ffffff",
+        "button_bg_color": "#fefdfc",
+        "button_text_color": "#131604",
+        "button_border_color": "#ffffff"
+      }
+    },
+    "trust-quality": {
+      "type": "release-notes",
+      "settings": {
+        "reverse_columns": true,
+        "image": "shopify://shop_images/big-ring-2.avif",
+        "subtitle": "Diamond Quality",
+        "title": "Exceptional Diamond Quality",
+        "content": "<p>Each center stone is carefully selected for cut precision, clarity, and light performance.<br/><br/>Proportions are evaluated to ensure strong brilliance and a balanced silhouette from every angle.<br/><br/>From grading standards to final setting, the focus remains on delivering a diamond that performs beautifully in real light — not just on paper.</p>",
+        "button_text": "ADD TO BAG - 1,626.00 USD",
+        "button_link": "shopify://products/emerald-cut-solitare-engagement-ring",
+        "text_bg_color": "rgba(0,0,0,0)",
+        "text_color": "#131604",
+        "subtitle_color": "#8b7d3c",
+        "title_color": "#131604",
+        "list_icon_color": "#ffffff",
+        "button_bg_color": "#8b7d3c",
+        "button_text_color": "#fefdfc",
+        "button_border_color": "rgba(0,0,0,0)"
+      }
+    },
     "faqs": {
       "type": "faqs",
       "blocks": {
@@ -381,6 +449,8 @@
   "order": [
     "product",
     "product-recommendations",
+    "brand-history",
+    "trust-quality",
     "faqs",
     "trust-badges",
     "follow-us"
