@@ -195,7 +195,7 @@
         "shape_6YKKpc"
       ],
       "settings": {
-        "fallback_product": "emerald-cut-solitare-engagement-ring",
+        "fallback_product": "cut-solitare-engagement-ring",
         "shipping_info": "<p><strong>Estimated Delivery: May 14, 2026</strong></p><p>Your ring is crafted to order and delivered via fully insured express shipping. Need it sooner? <a href=\"/policies/privacy-policy\" title=\"Privacy Policy\">Priority crafting options are available.</a></p>",
         "matching_collection": "wedding",
         "matching_title": "Matching Bands",
@@ -276,7 +276,7 @@
         "title": "Crafted for Lasting Brilliance",
         "content": "<p>Every detail of this ring is designed with balance, strength, and refined proportion.</p><p>The open four-prong setting allows maximum light performance while keeping the diamond secure for everyday wear.</p><p>Clean architectural lines highlight the stone and elevate its presence on the hand — a signature of thoughtful fine jewelry design.</p>",
         "button_text": "ADD TO BAG - 1,626.00 USD",
-        "button_link": "shopify://products/emerald-cut-solitare-engagement-ring",
+        "button_link": "shopify://products/cut-solitare-engagement-ring",
         "text_bg_color": "#8b7d3c",
         "text_color": "#fefdfc",
         "subtitle_color": "#fdf299",
@@ -296,7 +296,7 @@
         "title": "Exceptional Diamond Quality",
         "content": "<p>Each center stone is carefully selected for cut precision, clarity, and light performance.<br/><br/>Proportions are evaluated to ensure strong brilliance and a balanced silhouette from every angle.<br/><br/>From grading standards to final setting, the focus remains on delivering a diamond that performs beautifully in real light — not just on paper.</p>",
         "button_text": "ADD TO BAG - 1,626.00 USD",
-        "button_link": "shopify://products/emerald-cut-solitare-engagement-ring",
+        "button_link": "shopify://products/cut-solitare-engagement-ring",
         "text_bg_color": "rgba(0,0,0,0)",
         "text_color": "#131604",
         "subtitle_color": "#8b7d3c",
@@ -310,7 +310,7 @@
     "reviews": {
       "type": "customer-reviews",
       "settings": {
-        "product": "emerald-cut-solitare-engagement-ring"
+        "product": "cut-solitare-engagement-ring"
       }
     },
     "faqs": {
